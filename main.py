@@ -12,49 +12,54 @@ import torch.nn.functional as F
 import timm
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
-import requests  # для скачивания модели
+import gdown  # для скачивания модели с Google Drive
 
 
 # =========================================================
-#     ПАРАМЕТРЫ
+#     ПУТИ К ФАЙЛУ МОДЕЛИ И ССЫЛКА НА GOOGLE DRIVE
 # =========================================================
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # Папка и путь к локальному файлу модели (на Streamlit Cloud тоже)
-MODEL_DIR = Path("models")
+MODEL_DIR = BASE_DIR / "models"
 MODEL_PATH = MODEL_DIR / "cc_vit_sts.h5"
 
-# ---- URL модели: сначала читаем из secrets, иначе дефолтный ----
-# Исходная ссылка:
-# https://drive.google.com/file/d/1m-ZKYQle--s6wBojE5pBcr4BYJteta-n/view?usp=sharing
+# Ссылка на файл .h5 в Google Drive:
+# https://drive.google.com/file/d/1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC/view?usp=sharing
 DEFAULT_MODEL_URL = (
     "https://drive.google.com/uc"
-    "?export=download&id=1m-ZKYQle--s6wBojE5pBcr4BYJteta-n"
+    "?export=download&id=1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC"
 )
-MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
+
+# Позволяем переопределить URL через secrets (если захочешь)
+if "MODEL_URL" in st.secrets:
+    MODEL_URL = st.secrets["MODEL_URL"]
+else:
+    MODEL_URL = DEFAULT_MODEL_URL
 
 IMAGE_SIZE = 224  # входной размер для Swin Small
 
 
-def ensure_model_file():
+def ensure_model_file() -> None:
     """
     Проверяет наличие файла модели локально.
-    Если файла нет — скачивает его по MODEL_URL в папку models/.
+    Если файла нет — скачивает его из Google Drive по MODEL_URL.
     """
     if MODEL_PATH.exists():
         return
 
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    print("Скачиваем модель из интернета...")
+    print(f"Скачиваем модель из Google Drive в {MODEL_PATH}...")
 
-    resp = requests.get(MODEL_URL, stream=True)
-    resp.raise_for_status()
+    try:
+        gdown.download(MODEL_URL, str(MODEL_PATH), quiet=False)
+    except Exception as e:
+        # Ошибка скачивания — прерываем работу приложения
+        raise RuntimeError(f"Не удалось скачать файл модели: {e}") from e
 
-    with open(MODEL_PATH, "wb") as f:
-        for chunk in resp.itercontent(chunk_size=8192):
-            if chunk:
-                f.write(chunk)
-
-    print("Модель успешно загружена:", MODEL_PATH.resolve())
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError("Файл модели не был скачан. Проверьте MODEL_URL.")
 
 
 # =========================================================
@@ -175,7 +180,11 @@ def load_model_and_meta():
             np_arr = f["model_state_dict"][k][()]
             state[k] = torch.from_numpy(np_arr)
 
-    model = timm.create_model(model_name, pretrained=False, num_classes=len(class_names))
+    model = timm.create_model(
+        model_name,
+        pretrained=False,
+        num_classes=len(class_names),
+    )
     model.load_state_dict(state, strict=True)
     model.eval()
 
@@ -319,7 +328,7 @@ if btn:
             {
                 "№": list(range(len(class_names))),  # 0,1,2,...
                 "Класс": class_names,
-                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],  # до сотых
+                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
             }
         )
 
