@@ -167,10 +167,6 @@ st.markdown(
 st.markdown(
     """
     <style>
-    .stApp {
-        background-color: #ffffff !important;
-        color: #111827 !important; /* тёмный текст */
-    }
 
     /* Дополнительно на всякий случай — для markdown-текста */
     .stApp h1, .stApp h2, .stApp h3, .stApp h4,
