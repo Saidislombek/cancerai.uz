@@ -149,17 +149,6 @@ st.markdown(
         box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
     }
 
-    /* Для кнопки в сайдбаре сделаем чуть более спокойный цвет */
-    [data-testid="stSidebar"] .stButton > button {
-        background-color: #111827 !important;
-        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
-    }
-
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: #020617 !important;
-        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
-    }
-
     /* Файл-загрузчик: светлый бокс */
     [data-testid="stFileUploader"] > section {
         border-radius: 12px;
