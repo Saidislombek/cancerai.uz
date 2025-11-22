@@ -1,0 +1,18 @@
+# streamlit==1.51.0
+# numpy==2.3.5
+# pandas==2.3.3
+# Pillow==12.0.0
+# torch==2.9.1
+# torchvision==0.24.1
+# timm==1.0.22
+# h5py==3.15.1
+
+streamlit
+torch
+torchvision
+timm
+h5py
+pandas
+numpy
+Pillow
+requests
