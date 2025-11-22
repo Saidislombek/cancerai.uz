@@ -107,23 +107,103 @@ st.markdown(
         color: #111827 !important;
     }
 
-    /* Делаем тёмным текст всех базовых элементов внутри приложения */
+    /* Тёмный текст для всех базовых элементов */
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
         color: #111827;
     }
 
-    /* Сайдбар (делаем светлым, как в light-теме) */
+    /* Сайдбар (светлый, как в light-теме) */
     [data-testid="stSidebar"] {
         background-color: #f9fafb !important;
         color: #111827 !important;
+        border-right: 1px solid #e5e7eb;
     }
 
     [data-testid="stSidebar"] * {
         color: #111827 !important;
     }
 
-    /* Обнуляем лишний вертикальный padding, который даёт стандартная тема */
+    /* Кнопки (все: и в сайдбаре, и в основном контенте) */
+    .stButton > button {
+        background-color: #0f766e !important;      /* primary */
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.40rem 1.2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    .stButton > button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    /* Для кнопки в сайдбаре сделаем чуть более спокойный цвет */
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: #111827 !important;
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
+    }
+
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #020617 !important;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
+    }
+
+    /* Файл-загрузчик: светлый бокс */
+    [data-testid="stFileUploader"] > section {
+        border-radius: 12px;
+        border: 2px dashed #d1d5db;
+        background-color: #f9fafb;
+        padding: 1.25rem;
+    }
+
+    [data-testid="stFileUploader"] > section:hover {
+        border-color: #0f766e;
+        background-color: #f3f4ff;
+    }
+
+    [data-testid="stFileUploader"] label {
+        color: #4b5563 !important;
+        font-weight: 500;
+    }
+
+    /* Кнопка Browse files внутри загрузчика */
+    [data-testid="stFileUploader"] button {
+        background-color: #0f766e !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.30rem 0.9rem !important;
+        font-weight: 600 !important;
+        font-size: 0.90rem !important;
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    [data-testid="stFileUploader"] button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    /* Обнуляем лишний вертикальный padding */
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
@@ -320,87 +400,7 @@ if btn:
             pred_class, confidence, probs, elapsed, class_names = predict_single(image)
 
         elapsed_s = f"{elapsed:.3f} сек"
-        conf_s = f"{confidence * 100:.2f} %"
+        conf_s = f"{confidence * 100:.2f} %
 
-        # --------------------------------------------
-        # БЛОК РЕЗУЛЬТАТОВ
-        # --------------------------------------------
-        st.markdown('<div class="page-container">', unsafe_allow_html=True)
 
-        st.markdown(
-            '<div class="result-title">📊 Результаты диагностики</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<div class="result-subtitle">'
-            "Результаты, проанализированные моделью искусственного интеллекта"
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
-        # ---------- 1. ИТОГОВЫЕ ПОКАЗАТЕЛИ ----------
-        st.markdown(
-            "<h3 style='text-align:center;'>Итоговые показатели</h3>",
-            unsafe_allow_html=True,
-        )
-
-        metrics_names = [
-            "Время на прогноз",
-            "Точность прогнозирования",
-            "Предсказанный класс",
-        ]
-        metrics_values = [elapsed_s, conf_s, pred_class]
-
-        df_metrics = pd.DataFrame(
-            {
-                "№": list(range(1, len(metrics_names) + 1)),  # нумерация с 1
-                "Показатель": metrics_names,
-                "Значение": metrics_values,
-            }
-        )
-
-        metrics_html = df_metrics.to_html(
-            index=False,
-            classes="metrics-table",
-            border=0,
-            escape=False,
-        )
-        st.markdown(metrics_html, unsafe_allow_html=True)
-
-        # ---------- 2. ДЕТАЛИЗАЦИЯ ПО ВСЕМ КЛАССАМ ----------
-        st.markdown(
-            "<h3 style='text-align:center;'>Детализация по всем классам</h3>",
-            unsafe_allow_html=True,
-        )
-
-        df_classes = pd.DataFrame(
-            {
-                "№": list(range(len(class_names))),  # 0,1,2,...
-                "Класс": class_names,
-                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
-            }
-        )
-
-        classes_html = df_classes.to_html(
-            index=False,
-            classes="classes-table",
-            border=0,
-            escape=False,
-        )
-        st.markdown(classes_html, unsafe_allow_html=True)
-
-        # ---------- 3. ЗАГРУЖЕННОЕ ИЗОБРАЖЕНИЕ (ПО ЦЕНТРУ) ----------
-        st.markdown(
-            "<h3 style='text-align:center;'>Загруженное изображение</h3>",
-            unsafe_allow_html=True,
-        )
-
-        img_left, img_center, img_right = st.columns([1, 2, 1])
-        with img_center:
-            st.image(image, width=700)
-
-        # Закрываем внутренний .page-container (блок результатов)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# Закрываем внешний .page-container
-st.markdown("</div>", unsafe_allow_html=True)
+::contentReference[oaicite:0]{index=0}
