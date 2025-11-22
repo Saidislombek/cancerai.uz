@@ -13,6 +13,6 @@ torchvision
 timm
 h5py
 pandas
-numpy
 Pillow
-requests
+numpy
+gdown
