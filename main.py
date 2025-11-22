@@ -117,7 +117,6 @@ st.markdown(
     .page-container h3,
     .page-container h4 {
         text-align: center;
-        color: #000000;
     }
 
     .result-title {
