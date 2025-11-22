@@ -404,3 +404,88 @@ if btn:
 
 
 ::contentReference[oaicite:0]{index=0}
+        elapsed_s = f"{elapsed:.3f} сек"
+        conf_s = f"{confidence * 100:.2f} %"
+
+        # --------------------------------------------
+        # БЛОК РЕЗУЛЬТАТОВ
+        # --------------------------------------------
+        st.markdown('<div class="page-container">', unsafe_allow_html=True)
+
+        st.markdown(
+            '<div class="result-title">📊 Результаты диагностики</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="result-subtitle">'
+            "Результаты, проанализированные моделью искусственного интеллекта"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+        # ---------- 1. ИТОГОВЫЕ ПОКАЗАТЕЛИ ----------
+        st.markdown(
+            "<h3 style='text-align:center;'>Итоговые показатели</h3>",
+            unsafe_allow_html=True,
+        )
+
+        metrics_names = [
+            "Время на прогноз",
+            "Точность прогнозирования",
+            "Предсказанный класс",
+        ]
+        metrics_values = [elapsed_s, conf_s, pred_class]
+
+        df_metrics = pd.DataFrame(
+            {
+                "№": list(range(1, len(metrics_names) + 1)),  # нумерация с 1
+                "Показатель": metrics_names,
+                "Значение": metrics_values,
+            }
+        )
+
+        metrics_html = df_metrics.to_html(
+            index=False,
+            classes="metrics-table",
+            border=0,
+            escape=False,
+        )
+        st.markdown(metrics_html, unsafe_allow_html=True)
+
+        # ---------- 2. ДЕТАЛИЗАЦИЯ ПО ВСЕМ КЛАССАМ ----------
+        st.markdown(
+            "<h3 style='text-align:center;'>Детализация по всем классам</h3>",
+            unsafe_allow_html=True,
+        )
+
+        df_classes = pd.DataFrame(
+            {
+                "№": list(range(len(class_names))),  # 0,1,2,...
+                "Класс": class_names,
+                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
+            }
+        )
+
+        classes_html = df_classes.to_html(
+            index=False,
+            classes="classes-table",
+            border=0,
+            escape=False,
+        )
+        st.markdown(classes_html, unsafe_allow_html=True)
+
+        # ---------- 3. ЗАГРУЖЕННОЕ ИЗОБРАЖЕНИЕ (ПО ЦЕНТРУ) ----------
+        st.markdown(
+            "<h3 style='text-align:center;'>Загруженное изображение</h3>",
+            unsafe_allow_html=True,
+        )
+
+        img_left, img_center, img_right = st.columns([1, 2, 1])
+        with img_center:
+            st.image(image, width=700)
+
+        # Закрываем внутренний .page-container (блок результатов)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# Закрываем внешний .page-container
+st.markdown("</div>", unsafe_allow_html=True)
