@@ -99,6 +99,7 @@ st.markdown(
     .stApp {
     background-color: #ffffff !important;
     }
+    
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
@@ -160,19 +161,6 @@ st.markdown(
     }
 
     
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-st.markdown(
-    """
-    <style>
-
-    /* Дополнительно на всякий случай — для markdown-текста */
-    .stApp h1, .stApp h2, .stApp h3, .stApp h4,
-    .stApp p, .stApp span, .stApp li, .stApp label {
-        color: #111827 !important;
-    }
     </style>
     """,
     unsafe_allow_html=True,
