@@ -117,7 +117,7 @@ st.markdown(
     /* Сайдбар (светлый, как в light-теме) */
     [data-testid="stSidebar"] {
         background-color: #f9fafb !important;
-        color: #111827 !important;
+        color: #FFFFFF !important;
         border-right: 1px solid #e5e7eb;
     }
 
@@ -134,9 +134,8 @@ st.markdown(
         padding: 0.40rem 1.2rem !important;
         font-weight: 600 !important;
         font-size: 0.95rem !important;
-        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
         transition: background-color 0.15s ease, transform 0.08s ease,
-                    box-shadow 0.15s ease;
+        box-shadow 0.15s ease;
     }
 
     .stButton > button:hover {
@@ -185,7 +184,6 @@ st.markdown(
     [data-testid="stFileUploader"] button:hover {
         background-color: #0b524c !important;
         box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
-        transform: translateY(-1px);
     }
 
     [data-testid="stFileUploader"] button:active {
