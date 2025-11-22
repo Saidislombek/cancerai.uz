@@ -96,7 +96,9 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-
+    .stApp {
+    background-color: #ffffff !important;
+    }
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
