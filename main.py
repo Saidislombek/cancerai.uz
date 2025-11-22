@@ -23,14 +23,14 @@ import requests  # для скачивания модели
 MODEL_DIR = Path("models")
 MODEL_PATH = MODEL_DIR / "cc_vit_sts.h5"
 
-# Прямая ссылка на модель из Google Drive
+# ---- URL модели: сначала читаем из secrets, иначе дефолтный ----
 # Исходная ссылка:
 # https://drive.google.com/file/d/1m-ZKYQle--s6wBojE5pBcr4BYJteta-n/view?usp=sharing
-# FILE_ID = 1m-ZKYQle--s6wBojE5pBcr4BYJteta-n
-MODEL_URL = (
+DEFAULT_MODEL_URL = (
     "https://drive.google.com/uc"
     "?export=download&id=1m-ZKYQle--s6wBojE5pBcr4BYJteta-n"
 )
+MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
 
 IMAGE_SIZE = 224  # входной размер для Swin Small
 
@@ -39,7 +39,6 @@ def ensure_model_file():
     """
     Проверяет наличие файла модели локально.
     Если файла нет — скачивает его по MODEL_URL в папку models/.
-    Вызывается внутри load_model_and_meta().
     """
     if MODEL_PATH.exists():
         return
