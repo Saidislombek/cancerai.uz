@@ -96,15 +96,37 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    .stApp {
-    background-color: #ffffff !important;
+    /* Глобально говорим браузеру, что страница светлая */
+    :root {
+        color-scheme: light;
     }
-    
+
+    /* Основной контейнер приложения: белый фон + тёмный текст */
+    .stApp {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    /* Делаем тёмным текст всех базовых элементов внутри приложения */
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
+        color: #111827;
+    }
+
+    /* Сайдбар (делаем светлым, как в light-теме) */
+    [data-testid="stSidebar"] {
+        background-color: #f9fafb !important;
+        color: #111827 !important;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #111827 !important;
+    }
+
+    /* Обнуляем лишний вертикальный padding, который даёт стандартная тема */
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
-
-
 
     /* Общий контейнер по центру страницы */
     .page-container {
@@ -159,8 +181,6 @@ st.markdown(
         background-color: #f9fafb;
         font-weight: 600;
     }
-
-    
     </style>
     """,
     unsafe_allow_html=True,
@@ -177,8 +197,10 @@ with st.sidebar:
         st.cache_resource.clear()
         # принудительно удалим и файл, чтобы точно перекачался
         ensure_model_file(force=True)
-        st.success("Кэш и файл модели очищены. "
-                   "Модель будет загружена заново при следующем прогнозе.")
+        st.success(
+            "Кэш и файл модели очищены. "
+            "Модель будет загружена заново при следующем прогнозе."
+        )
 
 
 # =========================================================
@@ -310,7 +332,9 @@ if btn:
             unsafe_allow_html=True,
         )
         st.markdown(
-            '<div class="result-subtitle">Результаты, проанализированные моделью искусственного интеллекта</div>',
+            '<div class="result-subtitle">'
+            "Результаты, проанализированные моделью искусственного интеллекта"
+            "</div>",
             unsafe_allow_html=True,
         )
 
