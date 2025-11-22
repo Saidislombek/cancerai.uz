@@ -107,23 +107,103 @@ st.markdown(
         color: #111827 !important;
     }
 
-    /* Делаем тёмным текст всех базовых элементов внутри приложения */
+    /* Тёмный текст для всех базовых элементов */
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
         color: #111827;
     }
 
-    /* Сайдбар (делаем светлым, как в light-теме) */
+    /* Сайдбар (светлый, как в light-теме) */
     [data-testid="stSidebar"] {
         background-color: #f9fafb !important;
         color: #111827 !important;
+        border-right: 1px solid #e5e7eb;
     }
 
     [data-testid="stSidebar"] * {
         color: #111827 !important;
     }
 
-    /* Обнуляем лишний вертикальный padding, который даёт стандартная тема */
+    /* Кнопки (все: и в сайдбаре, и в основном контенте) */
+    .stButton > button {
+        background-color: #0f766e !important;      /* primary */
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.40rem 1.2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    .stButton > button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    /* Для кнопки в сайдбаре сделаем чуть более спокойный цвет */
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: #111827 !important;
+        box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
+    }
+
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #020617 !important;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.35);
+    }
+
+    /* Файл-загрузчик: светлый бокс */
+    [data-testid="stFileUploader"] > section {
+        border-radius: 12px;
+        border: 2px dashed #d1d5db;
+        background-color: #f9fafb;
+        padding: 1.25rem;
+    }
+
+    [data-testid="stFileUploader"] > section:hover {
+        border-color: #0f766e;
+        background-color: #f3f4ff;
+    }
+
+    [data-testid="stFileUploader"] label {
+        color: #4b5563 !important;
+        font-weight: 500;
+    }
+
+    /* Кнопка Browse files внутри загрузчика */
+    [data-testid="stFileUploader"] button {
+        background-color: #0f766e !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.30rem 0.9rem !important;
+        font-weight: 600 !important;
+        font-size: 0.90rem !important;
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    [data-testid="stFileUploader"] button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    /* Обнуляем лишний вертикальный padding */
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
@@ -291,7 +371,8 @@ st.markdown(
 )
 st.markdown(
     "<h4 style='text-align:center; color:#6b7280;'>"
-    "Загрузите цитологическое изображение.<br>Модель Swin-S выполнит прогноз фенотипа рака шейки матки."
+    "Загрузите цитологическое изображение.<br>"
+    "Модель Swin-S выполнит прогноз фенотипа рака шейки матки."
     "</h4>",
     unsafe_allow_html=True,
 )
