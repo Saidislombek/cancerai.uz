@@ -461,7 +461,7 @@ def predict_single(img: Image.Image):
 #     FOOTER
 # =========================================================
 
-def render_footer():
+def render_footer() -> None:
     footer_html = """
 <div class="cai-footer">
   <div class="cai-footer__inner">
