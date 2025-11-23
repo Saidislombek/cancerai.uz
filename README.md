@@ -10,4 +10,4 @@
 Телефон номер: +99897 729-89-97 <br>
 Аккаунт в телеграм: https://t.me/saidislombek15 <br>
 Мой инстаграм: @saidislombek15 <br>
-Моя электронная поччта: oliver-smith-97@mail.ru <br>
+Моя электронная почта: oliver-smith-97@mail.ru <br>
