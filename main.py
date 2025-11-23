@@ -122,7 +122,8 @@ st.markdown(
 
     .stApp {
         background-color: #ffffff !important;
-        color: #111827 !important;
+        # color: #111827 !important;
+        color: #ffffff !important;
     }
 
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
@@ -156,7 +157,6 @@ st.markdown(
     .stButton > button:hover {
         background-color: #0b524c !important;
         box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
-        transform: translateY(-1px);
     }
 
     .stButton > button:active {
