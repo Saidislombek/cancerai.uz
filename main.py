@@ -93,14 +93,24 @@ st.set_page_config(
     layout="wide",
 )
 
-hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    </style>
+HIDE_STREAMLIT_STYLE = """
+<style>
+/* Скрыть стандартное меню Streamlit */
+#MainMenu {
+    visibility: hidden;
+}
+
+/* Скрыть верхний и нижний бар приложения */
+header {
+    visibility: hidden;
+}
+footer {
+    visibility: hidden;
+}
+</style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
 
 st.markdown(
     """
