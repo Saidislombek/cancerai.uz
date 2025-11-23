@@ -385,6 +385,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Якорь для ссылки "Классификация снимка" из футера
+st.markdown('<a id="upload"></a>', unsafe_allow_html=True)
+
 # Блок загрузки и кнопка — по центру, через колонки
 col_u1, col_u2, col_u3 = st.columns([1, 2, 1])
 
@@ -493,6 +496,11 @@ if btn:
 
 # Закрываем внешний .page-container
 st.markdown("</div>", unsafe_allow_html=True)
+
+
+# =========================================================
+#     FOOTER CANCERAI
+# =========================================================
 
 footer_html = """
 <style>
