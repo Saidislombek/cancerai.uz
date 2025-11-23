@@ -90,9 +90,23 @@ st.set_page_config(
 
 HIDE_STREAMLIT_STYLE = """
 <style>
-#MainMenu { visibility: hidden; }
-header   { visibility: hidden; }
-footer   { visibility: hidden; }
+/* Скрыть стандартное меню Streamlit */
+#MainMenu {
+    visibility: hidden;
+}
+
+/* Скрыть верхний и нижний бар приложения */
+header {
+    visibility: hidden;
+}
+footer {
+    visibility: hidden;
+}
+
+/* Скрыть кнопку сворачивания/разворачивания сайдбара ("<<") */
+[data-testid="collapsedControl"] {
+    display: none;
+}
 </style>
 """
 st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
