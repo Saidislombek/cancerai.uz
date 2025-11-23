@@ -122,7 +122,7 @@ st.markdown(
 
     .stApp {
         background-color: #ffffff !important;
-        color: #111827 !important;
+        color: #ffffff !important;
     }
 
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
@@ -132,12 +132,12 @@ st.markdown(
 
     [data-testid="stSidebar"] {
         background-color: #f9fafb !important;
-        color: #111827 !important;
+        color: #ffffff !important;
         border-right: 1px solid #e5e7eb;
     }
 
     [data-testid="stSidebar"] * {
-        color: #111827 !important;
+        color: #ffffff !important;
     }
 
     .stButton > button {
