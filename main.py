@@ -353,172 +353,173 @@ def predict_single(img: Image.Image):
 # =========================================================
 
 def render_footer():
+    # ВАЖНО: без ведущих пробелов перед <style> и остальными тегами!
     footer_html = """
-    <style>
-    .cai-footer {
-        margin-top: 60px;
-        padding: 40px 0 24px 0;
-        background: #020617;
-        color: #e5e7eb;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    .cai-footer a {
-        color: inherit;
-        text-decoration: none;
-    }
-    .cai-footer a:hover {
-        text-decoration: underline;
-    }
-    .cai-footer__inner {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 0 16px;
-    }
+<style>
+.cai-footer {
+    margin-top: 60px;
+    padding: 40px 0 24px 0;
+    background: #020617;
+    color: #e5e7eb;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.cai-footer a {
+    color: inherit;
+    text-decoration: none;
+}
+.cai-footer a:hover {
+    text-decoration: underline;
+}
+.cai-footer__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+.cai-footer__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.cai-footer__brand {
+    flex: 1 1 260px;
+}
+.cai-footer__logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.cai-footer__logo-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+.cai-footer__brand-name {
+    font-size: 22px;
+    font-weight: 700;
+}
+.cai-footer__tagline {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #cbd5f5;
+}
+.cai-footer__socials {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+}
+.cai-footer__social {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+.cai-footer__cols {
+    display: flex;
+    flex: 1 1 260px;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+.cai-footer__col-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.cai-footer__link {
+    display: block;
+    font-size: 14px;
+    color: #cbd5f5;
+    margin-bottom: 6px;
+}
+.cai-footer__divider {
+    margin: 24px 0 16px 0;
+    border-top: 1px solid #1f2937;
+}
+.cai-footer__bottom {
+    font-size: 13px;
+    color: #9ca3af;
+}
+.cai-footer__author {
+    color: #22c55e;
+    font-weight: 600;
+}
+@media (max-width: 768px) {
     .cai-footer__top {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 32px;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-    .cai-footer__brand {
-        flex: 1 1 260px;
-    }
-    .cai-footer__logo-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-    .cai-footer__logo-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 999px;
-        background: #22c55e;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-    }
-    .cai-footer__brand-name {
-        font-size: 22px;
-        font-weight: 700;
-    }
-    .cai-footer__tagline {
-        font-size: 14px;
-        line-height: 1.6;
-        color: #cbd5f5;
-    }
-    .cai-footer__socials {
-        margin-top: 16px;
-        display: flex;
-        gap: 12px;
-    }
-    .cai-footer__social {
-        width: 32px;
-        height: 32px;
-        border-radius: 999px;
-        background: #1f2937;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
+        flex-direction: column;
     }
     .cai-footer__cols {
-        display: flex;
-        flex: 1 1 260px;
-        gap: 40px;
-        flex-wrap: wrap;
+        flex-direction: row;
     }
-    .cai-footer__col-title {
-        font-size: 15px;
-        font-weight: 600;
-        margin-bottom: 10px;
-    }
-    .cai-footer__link {
-        display: block;
-        font-size: 14px;
-        color: #cbd5f5;
-        margin-bottom: 6px;
-    }
-    .cai-footer__divider {
-        margin: 24px 0 16px 0;
-        border-top: 1px solid #1f2937;
-    }
-    .cai-footer__bottom {
-        font-size: 13px;
-        color: #9ca3af;
-    }
-    .cai-footer__author {
-        color: #22c55e;
-        font-weight: 600;
-    }
-    @media (max-width: 768px) {
-        .cai-footer__top {
-            flex-direction: column;
-        }
-        .cai-footer__cols {
-            flex-direction: row;
-        }
-    }
-    </style>
+}
+</style>
 
-    <div class="cai-footer">
-      <div class="cai-footer__inner">
+<div class="cai-footer">
+  <div class="cai-footer__inner">
 
-        <div class="cai-footer__top">
+    <div class="cai-footer__top">
 
-          <!-- Левая часть: логотип + текст -->
-          <div class="cai-footer__brand">
-            <div class="cai-footer__logo-row">
-              <div class="cai-footer__logo-circle">🧬</div>
-              <div class="cai-footer__brand-name">CancerAI</div>
-            </div>
-            <div class="cai-footer__tagline">
-              AI-система для классификации цитологических изображений
-              и прогнозирования фенотипов рака шейки матки.
-            </div>
-
-            <div class="cai-footer__socials">
-              <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📲</a>
-              <a class="cai-footer__social" href="https://instagram.com/your_instagram" target="_blank" rel="noopener">📸</a>
-              <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐙</a>
-            </div>
-          </div>
-
-          <!-- Правая часть: колонки -->
-          <div class="cai-footer__cols">
-            <div>
-              <div class="cai-footer__col-title">Сервис</div>
-              <a class="cai-footer__link" href="#upload">Классификация снимка</a>
-              <a class="cai-footer__link" href="#usage">Руководство по использованию</a>
-              <a class="cai-footer__link" href="#limits">Ограничения модели</a>
-            </div>
-
-            <div>
-              <div class="cai-footer__col-title">Проект</div>
-              <a class="cai-footer__link" href="#about">Про CancerAI</a>
-              <a class="cai-footer__link" href="#contact">Контакты</a>
-              <a class="cai-footer__link" href="#policy">Политика конфиденциальности</a>
-            </div>
-          </div>
-
+      <!-- Левая часть: логотип + текст -->
+      <div class="cai-footer__brand">
+        <div class="cai-footer__logo-row">
+          <div class="cai-footer__logo-circle">🧬</div>
+          <div class="cai-footer__brand-name">CancerAI</div>
+        </div>
+        <div class="cai-footer__tagline">
+          AI-система для классификации цитологических изображений
+          и прогнозирования фенотипов рака шейки матки.
         </div>
 
-        <div class="cai-footer__divider"></div>
-
-        <div class="cai-footer__bottom">
-          <span>© 2025 CancerAI. Все права защищены.</span><br/>
-          <span>Создано
-            <span class="cai-footer__author">
-              Abdullakhujaev Saidislombek N.
-            </span>
-          </span>
+        <div class="cai-footer__socials">
+          <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📲</a>
+          <a class="cai-footer__social" href="https://instagram.com/your_instagram" target="_blank" rel="noopener">📸</a>
+          <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐙</a>
         </div>
-
       </div>
+
+      <!-- Правая часть: колонки -->
+      <div class="cai-footer__cols">
+        <div>
+          <div class="cai-footer__col-title">Сервис</div>
+          <a class="cai-footer__link" href="#upload">Классификация снимка</a>
+          <a class="cai-footer__link" href="#usage">Руководство по использованию</a>
+          <a class="cai-footer__link" href="#limits">Ограничения модели</a>
+        </div>
+
+        <div>
+          <div class="cai-footer__col-title">Проект</div>
+          <a class="cai-footer__link" href="#about">Про CancerAI</a>
+          <a class="cai-footer__link" href="#contact">Контакты</a>
+          <a class="cai-footer__link" href="#policy">Политика конфиденциальности</a>
+        </div>
+      </div>
+
     </div>
-    """
+
+    <div class="cai-footer__divider"></div>
+
+    <div class="cai-footer__bottom">
+      <span>© 2025 CancerAI. Все права защищены.</span><br/>
+      <span>Создано
+        <span class="cai-footer__author">
+          Abdullakhujaev Saidislombek N.
+        </span>
+      </span>
+    </div>
+
+  </div>
+</div>
+"""
     st.markdown(footer_html, unsafe_allow_html=True)
 
 
@@ -642,3 +643,5 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 # Рендерим футер
 render_footer()
+
+::contentReference[oaicite:0]{index=0}
