@@ -21,18 +21,15 @@ from torchvision import transforms
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Папка и путь к локальному файлу модели (на Streamlit Cloud тоже)
 MODEL_DIR = BASE_DIR / "models"
 MODEL_PATH = MODEL_DIR / "cc_vit_sts.h5"
 
-# Ссылка на файл .h5 в Google Drive:
 # https://drive.google.com/file/d/1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC/view?usp=sharing
 DEFAULT_MODEL_URL = (
     "https://drive.google.com/uc"
     "?export=download&id=1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC"
 )
 
-# Позволяем переопределить URL через secrets (если захочешь)
 MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
 
 IMAGE_SIZE = 224  # входной размер для Swin Small
@@ -93,23 +90,14 @@ st.set_page_config(
 
 HIDE_STREAMLIT_STYLE = """
 <style>
-/* Скрыть стандартное меню Streamlit */
-#MainMenu {
-    visibility: hidden;
-}
-
-/* Скрыть верхний и нижний бар приложения */
-header {
-    visibility: hidden;
-}
-footer {
-    visibility: hidden;
-}
+#MainMenu { visibility: hidden; }
+header   { visibility: hidden; }
+footer   { visibility: hidden; }
 </style>
 """
 st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
 
-# Основной кастомный стиль
+# Основной кастомный стиль + стили футера
 st.markdown(
     """
     <style>
@@ -257,6 +245,114 @@ st.markdown(
         background-color: #f9fafb;
         font-weight: 600;
     }
+
+    /* ====== стили футера ====== */
+    .cai-footer {
+        margin-top: 60px;
+        padding: 40px 0 24px 0;
+        background: #020617;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .cai-footer a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .cai-footer a:hover {
+        text-decoration: underline;
+    }
+    .cai-footer__inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 16px;
+    }
+    .cai-footer__top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .cai-footer__brand {
+        flex: 1 1 260px;
+    }
+    .cai-footer__logo-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .cai-footer__logo-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: #22c55e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .cai-footer__brand-name {
+        font-size: 22px;
+        font-weight: 700;
+    }
+    .cai-footer__tagline {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #cbd5f5;
+    }
+    .cai-footer__socials {
+        margin-top: 16px;
+        display: flex;
+        gap: 12px;
+    }
+    .cai-footer__social {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    .cai-footer__cols {
+        display: flex;
+        flex: 1 1 260px;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+    .cai-footer__col-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .cai-footer__link {
+        display: block;
+        font-size: 14px;
+        color: #cbd5f5;
+        margin-bottom: 6px;
+    }
+    .cai-footer__divider {
+        margin: 24px 0 16px 0;
+        border-top: 1px solid #1f2937;
+    }
+    .cai-footer__bottom {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+    .cai-footer__author {
+        color: #22c55e;
+        font-weight: 600;
+    }
+    @media (max-width: 768px) {
+        .cai-footer__top {
+            flex-direction: column;
+        }
+        .cai-footer__cols {
+            flex-direction: row;
+        }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -287,8 +383,6 @@ with st.sidebar:
 def load_model_and_meta():
     """
     Загружает архитектуру Swin-S и веса из файла cc_vit_sts.h5.
-    Если файл модели отсутствует или битый, ensure_model_file()
-    его скачает/перекачает.
     """
     ensure_model_file()
 
@@ -353,123 +447,12 @@ def predict_single(img: Image.Image):
 # =========================================================
 
 def render_footer():
-    # ВАЖНО: без ведущих пробелов перед <style> и остальными тегами!
     footer_html = """
-<style>
-.cai-footer {
-    margin-top: 60px;
-    padding: 40px 0 24px 0;
-    background: #020617;
-    color: #e5e7eb;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-.cai-footer a {
-    color: inherit;
-    text-decoration: none;
-}
-.cai-footer a:hover {
-    text-decoration: underline;
-}
-.cai-footer__inner {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 16px;
-}
-.cai-footer__top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-.cai-footer__brand {
-    flex: 1 1 260px;
-}
-.cai-footer__logo-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-.cai-footer__logo-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: #22c55e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-.cai-footer__brand-name {
-    font-size: 22px;
-    font-weight: 700;
-}
-.cai-footer__tagline {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #cbd5f5;
-}
-.cai-footer__socials {
-    margin-top: 16px;
-    display: flex;
-    gap: 12px;
-}
-.cai-footer__social {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: #1f2937;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-.cai-footer__cols {
-    display: flex;
-    flex: 1 1 260px;
-    gap: 40px;
-    flex-wrap: wrap;
-}
-.cai-footer__col-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-.cai-footer__link {
-    display: block;
-    font-size: 14px;
-    color: #cbd5f5;
-    margin-bottom: 6px;
-}
-.cai-footer__divider {
-    margin: 24px 0 16px 0;
-    border-top: 1px solid #1f2937;
-}
-.cai-footer__bottom {
-    font-size: 13px;
-    color: #9ca3af;
-}
-.cai-footer__author {
-    color: #22c55e;
-    font-weight: 600;
-}
-@media (max-width: 768px) {
-    .cai-footer__top {
-        flex-direction: column;
-    }
-    .cai-footer__cols {
-        flex-direction: row;
-    }
-}
-</style>
-
 <div class="cai-footer">
   <div class="cai-footer__inner">
 
     <div class="cai-footer__top">
 
-      <!-- Левая часть: логотип + текст -->
       <div class="cai-footer__brand">
         <div class="cai-footer__logo-row">
           <div class="cai-footer__logo-circle">🧬</div>
@@ -487,7 +470,6 @@ def render_footer():
         </div>
       </div>
 
-      <!-- Правая часть: колонки -->
       <div class="cai-footer__cols">
         <div>
           <div class="cai-footer__col-title">Сервис</div>
@@ -527,7 +509,6 @@ def render_footer():
 #     UI
 # =========================================================
 
-# Весь контент страницы в одном центральном контейнере
 st.markdown('<div class="page-container" id="upload">', unsafe_allow_html=True)
 
 st.markdown(
@@ -638,8 +619,10 @@ if btn:
 
         st.markdown("</div>", unsafe_allow_html=True)
 
-# Закрываем внешний .page-container
+# закрываем внешний контейнер
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Рендерим футер
+# и только после этого рендерим футер
 render_footer()
+
+::contentReference[oaicite:0]{index=0}
