@@ -38,6 +38,10 @@ MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
 IMAGE_SIZE = 224  # входной размер для Swin Small
 
 
+# =========================================================
+#     РАБОТА С ФАЙЛОМ МОДЕЛИ
+# =========================================================
+
 def _download_model() -> None:
     """Качает модель из Google Drive в MODEL_PATH."""
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
@@ -49,29 +53,23 @@ def ensure_model_file(force: bool = False) -> None:
     """
     Гарантирует, что локальный файл модели существует и является
     корректным HDF5. Если файла нет или он битый — перекачивает.
-
-    force=True можно использовать для принудительного перескачивания.
     """
-    # Если явно попросили — удаляем старый файл
     if force and MODEL_PATH.exists():
         MODEL_PATH.unlink()
 
-    # Если файла нет — качаем
     if not MODEL_PATH.exists():
         _download_model()
 
-    # Проверяем, что файл действительно HDF5, а не HTML/обрезок
+    # Проверяем, что файл действительно HDF5
     try:
         with h5py.File(MODEL_PATH, "r") as f:
-            _ = list(f.keys())  # просто чтение структуры
+            _ = list(f.keys())
     except OSError:
-        # Первый запуск: файл битый или не HDF5 — пробуем перекачать
         print("Файл модели повреждён или не является HDF5. Перекачиваем...")
         if MODEL_PATH.exists():
             MODEL_PATH.unlink()
         _download_model()
 
-        # Вторая попытка; если снова ошибка — падаем с понятным текстом
         try:
             with h5py.File(MODEL_PATH, "r") as f:
                 _ = list(f.keys())
@@ -109,30 +107,26 @@ footer {
 }
 </style>
 """
-
 st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
 
+# Основной кастомный стиль
 st.markdown(
     """
     <style>
-    /* Глобально говорим браузеру, что страница светлая */
     :root {
         color-scheme: light;
     }
 
-    /* Основной контейнер приложения: белый фон + тёмный текст */
     .stApp {
         background-color: #ffffff !important;
         color: #111827 !important;
     }
 
-    /* Тёмный текст для всех базовых элементов */
     .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
     .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
         color: #111827;
     }
 
-    /* Сайдбар (светлый, как в light-теме) */
     [data-testid="stSidebar"] {
         background-color: #f9fafb !important;
         color: #111827 !important;
@@ -143,9 +137,8 @@ st.markdown(
         color: #111827 !important;
     }
 
-    /* Кнопки (все: и в сайдбаре, и в основном контенте) */
     .stButton > button {
-        background-color: #0f766e !important;      /* primary */
+        background-color: #0f766e !important;
         color: #ffffff !important;
         border: none !important;
         border-radius: 9999px !important;
@@ -168,7 +161,6 @@ st.markdown(
         box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
     }
 
-    /* Файл-загрузчик: светлый бокс */
     [data-testid="stFileUploader"] > section {
         border-radius: 12px;
         border: 2px dashed #d1d5db;
@@ -186,7 +178,6 @@ st.markdown(
         font-weight: 500;
     }
 
-    /* Кнопка Browse files внутри загрузчика */
     [data-testid="stFileUploader"] button {
         background-color: #0f766e !important;
         color: #ffffff !important;
@@ -211,19 +202,16 @@ st.markdown(
         box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
     }
 
-    /* Обнуляем лишний вертикальный padding */
     .st-emotion-cache-zy6yx3 {
          padding: 30px 0px !important;
     }
 
-    /* Общий контейнер по центру страницы */
     .page-container {
         max-width: 820px;
         margin: 0px auto;
         padding: 0px;
     }
 
-    /* На всякий случай центрируем h3/h4 внутри контейнера */
     .page-container h3,
     .page-container h4 {
         text-align: center;
@@ -274,6 +262,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # =========================================================
 #     САЙДБАР: ОЧИСТКА КЭША
 # =========================================================
@@ -283,7 +272,6 @@ with st.sidebar:
     if st.button("🧹 Очистить кэш модели"):
         st.cache_data.clear()
         st.cache_resource.clear()
-        # принудительно удалим и файл, чтобы точно перекачался
         ensure_model_file(force=True)
         st.success(
             "Кэш и файл модели очищены. "
@@ -331,10 +319,7 @@ def load_model_and_meta():
 # =========================================================
 
 def preprocess(img: Image.Image) -> torch.Tensor:
-    """
-    Преобразование изображения к формату, ожидаемому моделью:
-    resize -> tensor -> нормализация.
-    """
+    """resize -> tensor -> нормализация."""
     tfm = transforms.Compose(
         [
             transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
@@ -346,9 +331,7 @@ def preprocess(img: Image.Image) -> torch.Tensor:
 
 
 def predict_single(img: Image.Image):
-    """
-    Прогноз по одному изображению.
-    """
+    """Прогноз по одному изображению."""
     model, class_names = load_model_and_meta()
     x = preprocess(img)
 
@@ -366,13 +349,186 @@ def predict_single(img: Image.Image):
 
 
 # =========================================================
+#     FOOTER
+# =========================================================
+
+def render_footer():
+    footer_html = """
+    <style>
+    .cai-footer {
+        margin-top: 60px;
+        padding: 40px 0 24px 0;
+        background: #020617;
+        color: #e5e7eb;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .cai-footer a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .cai-footer a:hover {
+        text-decoration: underline;
+    }
+    .cai-footer__inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 16px;
+    }
+    .cai-footer__top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .cai-footer__brand {
+        flex: 1 1 260px;
+    }
+    .cai-footer__logo-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .cai-footer__logo-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: #22c55e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .cai-footer__brand-name {
+        font-size: 22px;
+        font-weight: 700;
+    }
+    .cai-footer__tagline {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #cbd5f5;
+    }
+    .cai-footer__socials {
+        margin-top: 16px;
+        display: flex;
+        gap: 12px;
+    }
+    .cai-footer__social {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: #1f2937;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    .cai-footer__cols {
+        display: flex;
+        flex: 1 1 260px;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+    .cai-footer__col-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .cai-footer__link {
+        display: block;
+        font-size: 14px;
+        color: #cbd5f5;
+        margin-bottom: 6px;
+    }
+    .cai-footer__divider {
+        margin: 24px 0 16px 0;
+        border-top: 1px solid #1f2937;
+    }
+    .cai-footer__bottom {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+    .cai-footer__author {
+        color: #22c55e;
+        font-weight: 600;
+    }
+    @media (max-width: 768px) {
+        .cai-footer__top {
+            flex-direction: column;
+        }
+        .cai-footer__cols {
+            flex-direction: row;
+        }
+    }
+    </style>
+
+    <div class="cai-footer">
+      <div class="cai-footer__inner">
+
+        <div class="cai-footer__top">
+
+          <!-- Левая часть: логотип + текст -->
+          <div class="cai-footer__brand">
+            <div class="cai-footer__logo-row">
+              <div class="cai-footer__logo-circle">🧬</div>
+              <div class="cai-footer__brand-name">CancerAI</div>
+            </div>
+            <div class="cai-footer__tagline">
+              AI-система для классификации цитологических изображений
+              и прогнозирования фенотипов рака шейки матки.
+            </div>
+
+            <div class="cai-footer__socials">
+              <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📲</a>
+              <a class="cai-footer__social" href="https://instagram.com/your_instagram" target="_blank" rel="noopener">📸</a>
+              <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐙</a>
+            </div>
+          </div>
+
+          <!-- Правая часть: колонки -->
+          <div class="cai-footer__cols">
+            <div>
+              <div class="cai-footer__col-title">Сервис</div>
+              <a class="cai-footer__link" href="#upload">Классификация снимка</a>
+              <a class="cai-footer__link" href="#usage">Руководство по использованию</a>
+              <a class="cai-footer__link" href="#limits">Ограничения модели</a>
+            </div>
+
+            <div>
+              <div class="cai-footer__col-title">Проект</div>
+              <a class="cai-footer__link" href="#about">Про CancerAI</a>
+              <a class="cai-footer__link" href="#contact">Контакты</a>
+              <a class="cai-footer__link" href="#policy">Политика конфиденциальности</a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="cai-footer__divider"></div>
+
+        <div class="cai-footer__bottom">
+          <span>© 2025 CancerAI. Все права защищены.</span><br/>
+          <span>Создано
+            <span class="cai-footer__author">
+              Abdullakhujaev Saidislombek N.
+            </span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+    """
+    st.markdown(footer_html, unsafe_allow_html=True)
+
+
+# =========================================================
 #     UI
 # =========================================================
 
 # Весь контент страницы в одном центральном контейнере
-st.markdown('<div class="page-container">', unsafe_allow_html=True)
+st.markdown('<div class="page-container" id="upload">', unsafe_allow_html=True)
 
-# Заголовок и описание по центру
 st.markdown(
     "<h2 style='text-align:center;'>🧬 Классификация фенотипов рака шейки матки</h2>",
     unsafe_allow_html=True,
@@ -385,10 +541,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Якорь для ссылки "Классификация снимка" из футера
-st.markdown('<a id="upload"></a>', unsafe_allow_html=True)
-
-# Блок загрузки и кнопка — по центру, через колонки
 col_u1, col_u2, col_u3 = st.columns([1, 2, 1])
 
 with col_u2:
@@ -400,23 +552,18 @@ with col_u2:
     )
     btn = st.button("🔍 Выполнить прогноз")
 
-# Логика обработки
 if btn:
     if uploaded_file is None:
         st.warning("Пожалуйста, сначала загрузите изображение.")
     else:
         image = Image.open(uploaded_file)
 
-        # Сразу считаем прогноз
         with st.spinner("Модель выполняет прогноз..."):
             pred_class, confidence, probs, elapsed, class_names = predict_single(image)
 
         elapsed_s = f"{elapsed:.3f} сек"
         conf_s = f"{confidence * 100:.2f} %"
 
-        # --------------------------------------------
-        # БЛОК РЕЗУЛЬТАТОВ
-        # --------------------------------------------
         st.markdown('<div class="page-container">', unsafe_allow_html=True)
 
         st.markdown(
@@ -430,7 +577,6 @@ if btn:
             unsafe_allow_html=True,
         )
 
-        # ---------- 1. ИТОГОВЫЕ ПОКАЗАТЕЛИ ----------
         st.markdown(
             "<h3 style='text-align:center;'>Итоговые показатели</h3>",
             unsafe_allow_html=True,
@@ -445,7 +591,7 @@ if btn:
 
         df_metrics = pd.DataFrame(
             {
-                "№": list(range(1, len(metrics_names) + 1)),  # нумерация с 1
+                "№": list(range(1, len(metrics_names) + 1)),
                 "Показатель": metrics_names,
                 "Значение": metrics_values,
             }
@@ -459,7 +605,6 @@ if btn:
         )
         st.markdown(metrics_html, unsafe_allow_html=True)
 
-        # ---------- 2. ДЕТАЛИЗАЦИЯ ПО ВСЕМ КЛАССАМ ----------
         st.markdown(
             "<h3 style='text-align:center;'>Детализация по всем классам</h3>",
             unsafe_allow_html=True,
@@ -467,7 +612,7 @@ if btn:
 
         df_classes = pd.DataFrame(
             {
-                "№": list(range(len(class_names))),  # 0,1,2,...
+                "№": list(range(len(class_names))),
                 "Класс": class_names,
                 "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
             }
@@ -481,7 +626,6 @@ if btn:
         )
         st.markdown(classes_html, unsafe_allow_html=True)
 
-        # ---------- 3. ЗАГРУЖЕННОЕ ИЗОБРАЖЕНИЕ (ПО ЦЕНТРУ) ----------
         st.markdown(
             "<h3 style='text-align:center;'>Загруженное изображение</h3>",
             unsafe_allow_html=True,
@@ -491,206 +635,10 @@ if btn:
         with img_center:
             st.image(image, width=700)
 
-        # Закрываем внутренний .page-container (блок результатов)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # Закрываем внешний .page-container
 st.markdown("</div>", unsafe_allow_html=True)
 
-
-# =========================================================
-#     FOOTER CANCERAI
-# =========================================================
-
-footer_html = """
-<style>
-.cai-footer {
-    margin-top: 60px;
-    padding: 40px 0 24px 0;
-    background: #020617;
-    color: #e5e7eb;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.cai-footer a {
-    color: inherit;
-    text-decoration: none;
-}
-
-.cai-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Внутренний контейнер */
-.cai-footer__inner {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 16px;
-}
-
-/* Верхняя часть: левая колонка + две правых */
-.cai-footer__top {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 32px;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-/* Левая часть */
-.cai-footer__brand {
-    flex: 1 1 260px;
-}
-
-.cai-footer__logo-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.cai-footer__logo-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: #22c55e;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-
-.cai-footer__brand-name {
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.cai-footer__tagline {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #cbd5f5;
-}
-
-/* Соцсети */
-.cai-footer__socials {
-    margin-top: 16px;
-    display: flex;
-    gap: 12px;
-}
-
-.cai-footer__social {
-    width: 32px;
-    height: 32px;
-    border-radius: 999px;
-    background: #1f2937;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-}
-
-/* Правые колонки */
-.cai-footer__cols {
-    display: flex;
-    flex: 1 1 260px;
-    gap: 40px;
-    flex-wrap: wrap;
-}
-
-.cai-footer__col-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 10px;
-}
-
-.cai-footer__link {
-    display: block;
-    font-size: 14px;
-    color: #cbd5f5;
-    margin-bottom: 6px;
-}
-
-/* Разделитель + нижняя строка */
-.cai-footer__divider {
-    margin: 24px 0 16px 0;
-    border-top: 1px solid #1f2937;
-}
-
-.cai-footer__bottom {
-    font-size: 13px;
-    color: #9ca3af;
-}
-
-.cai-footer__author {
-    color: #22c55e;
-    font-weight: 600;
-}
-
-/* Адаптив под мобильные */
-@media (max-width: 768px) {
-    .cai-footer__top {
-        flex-direction: column;
-    }
-    .cai-footer__cols {
-        flex-direction: row;
-    }
-}
-</style>
-
-<div class="cai-footer">
-  <div class="cai-footer__inner">
-
-    <div class="cai-footer__top">
-
-      <!-- Левая часть: логотип + текст -->
-      <div class="cai-footer__brand">
-        <div class="cai-footer__logo-row">
-          <div class="cai-footer__logo-circle">🧬</div>
-          <div class="cai-footer__brand-name">CancerAI</div>
-        </div>
-        <div class="cai-footer__tagline">
-          AI-система для классификации цитологических изображений
-          и прогнозирования фенотипов рака шейки матки.
-        </div>
-
-        <div class="cai-footer__socials">
-          <!-- сюда потом подставишь реальные ссылки -->
-          <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📲</a>
-          <a class="cai-footer__social" href="https://instagram.com/your_instagram" target="_blank" rel="noopener">📸</a>
-          <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐙</a>
-        </div>
-      </div>
-
-      <!-- Правая часть: колонки -->
-      <div class="cai-footer__cols">
-
-        <div>
-          <div class="cai-footer__col-title">Сервис</div>
-          <a class="cai-footer__link" href="#upload">Классификация снимка</a>
-          <a class="cai-footer__link" href="#usage">Руководство по использованию</a>
-          <a class="cai-footer__link" href="#limits">Ограничения модели</a>
-        </div>
-
-        <div>
-          <div class="cai-footer__col-title">Проект</div>
-          <a class="cai-footer__link" href="#about">Про CancerAI</a>
-          <a class="cai-footer__link" href="#contact">Контакты</a>
-          <a class="cai-footer__link" href="#policy">Политика конфиденциальности</a>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="cai-footer__divider"></div>
-
-    <div class="cai-footer__bottom">
-      <span>© 2025 CancerAI. Все права защищены.</span>
-      <br/>
-      <span>Создано <span class="cai-footer__author">Abdullakhujaev Saidislombek N.</span></span>
-    </div>
-
-  </div>
-</div>
-"""
-
-st.markdown(footer_html, unsafe_allow_html=True)
+# Рендерим футер
+render_footer()
