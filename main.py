@@ -494,174 +494,147 @@ if btn:
 # Закрываем внешний .page-container
 st.markdown("</div>", unsafe_allow_html=True)
 
-# =========================
-#     КАСТОМНЫЙ ФУТЕР
-# =========================
-
-FOOTER_HTML = """
+footer_html = """
 <style>
 .cai-footer {
-    background: #020617;          /* очень тёмный фон */
+    margin-top: 60px;
+    padding: 40px 0 24px 0;
+    background: #020617;
     color: #e5e7eb;
-    padding: 48px 0 28px 0;
-    margin-top: 72px;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                 sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* контейнер по центру */
-.cai-footer__container {
-    max-width: 1100px;
+.cai-footer a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cai-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Внутренний контейнер */
+.cai-footer__inner {
+    max-width: 960px;
     margin: 0 auto;
-    padding: 0 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
+    padding: 0 16px;
 }
 
-/* верхняя часть футера: логотип + колонки */
+/* Верхняя часть: левая колонка + две правых */
 .cai-footer__top {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 32px;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
-@media (min-width: 900px) {
-    .cai-footer__top {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: flex-start;
-    }
-}
-
-/* блок логотипа / описания */
+/* Левая часть */
 .cai-footer__brand {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    max-width: 420px;
+    flex: 1 1 260px;
 }
 
 .cai-footer__logo-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .cai-footer__logo-circle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 999px;
-    background: #22c55e22;
+    background: #22c55e;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 22px;
 }
 
 .cai-footer__brand-name {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
 }
 
 .cai-footer__tagline {
     font-size: 14px;
-    line-height: 1.5;
-    color: #9ca3af;
+    line-height: 1.6;
+    color: #cbd5f5;
 }
 
-/* социальные кнопки */
+/* Соцсети */
 .cai-footer__socials {
+    margin-top: 16px;
     display: flex;
     gap: 12px;
 }
 
 .cai-footer__social {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     border-radius: 999px;
-    background: #020617;
-    border: 1px solid #374151;
+    background: #1f2937;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    text-decoration: none;
-    color: #e5e7eb;
-    transition: background 0.15s ease, transform 0.08s ease,
-                border-color 0.15s ease;
+    font-size: 16px;
 }
 
-.cai-footer__social:hover {
-    background: #111827;
-    border-color: #4b5563;
-    transform: translateY(-1px);
-}
-
-/* колонки ссылок */
+/* Правые колонки */
 .cai-footer__cols {
     display: flex;
-    flex-direction: row;
+    flex: 1 1 260px;
     gap: 40px;
     flex-wrap: wrap;
 }
 
 .cai-footer__col-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .03em;
-    color: #9ca3af;
     margin-bottom: 10px;
 }
 
 .cai-footer__link {
     display: block;
     font-size: 14px;
-    color: #e5e7eb;
-    text-decoration: none;
+    color: #cbd5f5;
     margin-bottom: 6px;
-    transition: color 0.15s ease;
 }
 
-.cai-footer__link:hover {
-    color: #22c55e;
-}
-
-/* разделитель и нижняя строка */
+/* Разделитель + нижняя строка */
 .cai-footer__divider {
-    border-top: 1px solid #111827;
-    margin-top: 8px;
-    padding-top: 16px;
+    margin: 24px 0 16px 0;
+    border-top: 1px solid #1f2937;
 }
 
 .cai-footer__bottom {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
     font-size: 13px;
     color: #9ca3af;
 }
 
-@media (min-width: 700px) {
-    .cai-footer__bottom {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-    }
-}
-
 .cai-footer__author {
     color: #22c55e;
+    font-weight: 600;
+}
+
+/* Адаптив под мобильные */
+@media (max-width: 768px) {
+    .cai-footer__top {
+        flex-direction: column;
+    }
+    .cai-footer__cols {
+        flex-direction: row;
+    }
 }
 </style>
 
 <div class="cai-footer">
-  <div class="cai-footer__container">
+  <div class="cai-footer__inner">
 
     <div class="cai-footer__top">
 
-      <!-- Левая часть: логотип + текст + соцсети -->
+      <!-- Левая часть: логотип + текст -->
       <div class="cai-footer__brand">
         <div class="cai-footer__logo-row">
           <div class="cai-footer__logo-circle">🧬</div>
@@ -671,43 +644,45 @@ FOOTER_HTML = """
           AI-система для классификации цитологических изображений
           и прогнозирования фенотипов рака шейки матки.
         </div>
+
         <div class="cai-footer__socials">
-          <!-- сюда подставь свои реальные ссылки -->
-          <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📨</a>
+          <!-- сюда потом подставишь реальные ссылки -->
+          <a class="cai-footer__social" href="https://t.me/your_telegram" target="_blank" rel="noopener">📲</a>
           <a class="cai-footer__social" href="https://instagram.com/your_instagram" target="_blank" rel="noopener">📸</a>
-          <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐱</a>
+          <a class="cai-footer__social" href="https://github.com/Saidislombek" target="_blank" rel="noopener">🐙</a>
         </div>
       </div>
 
       <!-- Правая часть: колонки -->
       <div class="cai-footer__cols">
+
         <div>
           <div class="cai-footer__col-title">Сервис</div>
           <a class="cai-footer__link" href="#upload">Классификация снимка</a>
-          <a class="cai-footer__link" href="#">Руководство по использованию</a>
-          <a class="cai-footer__link" href="#">Ограничения модели</a>
+          <a class="cai-footer__link" href="#usage">Руководство по использованию</a>
+          <a class="cai-footer__link" href="#limits">Ограничения модели</a>
         </div>
 
         <div>
           <div class="cai-footer__col-title">Проект</div>
-          <a class="cai-footer__link" href="#">О CancerAI</a>
-          <a class="cai-footer__link" href="#">Контакты</a>
-          <a class="cai-footer__link" href="#">Политика конфиденциальности</a>
+          <a class="cai-footer__link" href="#about">Про CancerAI</a>
+          <a class="cai-footer__link" href="#contact">Контакты</a>
+          <a class="cai-footer__link" href="#policy">Политика конфиденциальности</a>
         </div>
-      </div>
 
+      </div>
     </div>
 
-    <div class="cai-footer__divider">
-      <div class="cai-footer__bottom">
-        <span>© 2025 CancerAI. Все права защищены.</span>
-        <span>Создано <span class="cai-footer__author">
-          Abdullakhujaev Saidislombek N.
-        </span></span>
-      </div>
+    <div class="cai-footer__divider"></div>
+
+    <div class="cai-footer__bottom">
+      <span>© 2025 CancerAI. Все права защищены.</span>
+      <br/>
+      <span>Создано <span class="cai-footer__author">Abdullakhujaev Saidislombek N.</span></span>
     </div>
 
   </div>
 </div>
 """
-st.markdown(FOOTER_HTML, unsafe_allow_html=True)
+
+st.markdown(footer_html, unsafe_allow_html=True)
