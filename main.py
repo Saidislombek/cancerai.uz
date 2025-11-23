@@ -625,4 +625,4 @@ st.markdown("</div>", unsafe_allow_html=True)
 # и только после этого рендерим футер
 render_footer()
 
-::contentReference[oaicite:0]{index=0}
+
