@@ -104,8 +104,9 @@ footer {
 }
 
 /* Скрыть кнопку сворачивания/разворачивания сайдбара ("<<") */
-[data-testid="collapsedControl"] {
-    display: none;
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
 }
 </style>
 """
@@ -638,5 +639,3 @@ st.markdown("</div>", unsafe_allow_html=True)
 
 # и только после этого рендерим футер
 render_footer()
-
-
