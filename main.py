@@ -268,15 +268,15 @@ st.markdown(
         background-color: #f9fafb;
         font-weight: 600;
     }
+
+    /* АБСОЛЮТНЫЙ ЯДЕРНЫЙ ВАРИАНТ — если ничего не помогает */
+button[kind="primary"], button[kind="secondary"] {
+    color: white !important;
+}
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-/* АБСОЛЮТНЫЙ ЯДЕРНЫЙ ВАРИАНТ — если ничего не помогает */
-button[kind="primary"], button[kind="secondary"] {
-    color: white !important;
-}
 
 # =========================================================
 #     САЙДБАР: ОЧИСТКА КЭША
