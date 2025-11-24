@@ -154,8 +154,8 @@ st.markdown(
                     box-shadow 0.15s ease;
     }
 
-    /* ЯВНО делаем текст в кнопке белым (и в сайдбаре тоже) */
-    .stButton > button span {
+    /* Гарантируем белый цвет текста для всех элементов внутри кнопки */
+    .stButton > button * {
         color: #ffffff !important;
     }
 
@@ -187,6 +187,7 @@ st.markdown(
         font-weight: 500;
     }
 
+    /* Кнопка в uploader’е — тоже белый текст */
     [data-testid="stFileUploader"] button {
         background-color: #0f766e !important;
         color: #ffffff !important;
@@ -198,6 +199,10 @@ st.markdown(
         box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
         transition: background-color 0.15s ease, transform 0.08s ease,
                     box-shadow 0.15s ease;
+    }
+
+    [data-testid="stFileUploader"] button * {
+        color: #ffffff !important;
     }
 
     [data-testid="stFileUploader"] button:hover {
@@ -266,11 +271,6 @@ st.markdown(
         background-color: #f9fafb;
         font-weight: 600;
     }
-
-    /* АБСОЛЮТНЫЙ ЯДЕРНЫЙ ВАРИАНТ — если ничего не помогает */
-button[kind="primary"], button[kind="secondary"] {
-    color: white !important;
-}
     </style>
     """,
     unsafe_allow_html=True,
