@@ -1,3 +1,5 @@
+Последняя версия main.py
+
 import time
 from pathlib import Path
 
@@ -14,118 +16,283 @@ import timm
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torchvision import transforms
 
+
 # =========================================================
-#     ПУТИ К МОДЕЛИ
+#     ПУТИ К ФАЙЛУ МОДЕЛИ И ССЫЛКА НА GOOGLE DRIVE
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+
 MODEL_DIR = BASE_DIR / "models"
 MODEL_PATH = MODEL_DIR / "cc_vit_sts.h5"
 
-DEFAULT_MODEL_URL = "https://drive.google.com/uc?export=download&id=1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC"
-MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
-IMAGE_SIZE = 224
+# https://drive.google.com/file/d/1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC/view?usp=sharing
+DEFAULT_MODEL_URL = (
+    "https://drive.google.com/uc"
+    "?export=download&id=1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC"
+)
 
-def _download_model():
+MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
+
+IMAGE_SIZE = 224  # входной размер для Swin Small
+
+
+# =========================================================
+#     РАБОТА С ФАЙЛОМ МОДЕЛИ
+# =========================================================
+
+def _download_model() -> None:
+    """Качает модель из Google Drive в MODEL_PATH."""
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"Скачиваем модель из Google Drive в {MODEL_PATH}...")
     gdown.download(MODEL_URL, str(MODEL_PATH), quiet=False)
 
-def ensure_model_file(force=False):
+
+def ensure_model_file(force: bool = False) -> None:
+    """
+    Гарантирует, что локальный файл модели существует и является
+    корректным HDF5. Если файла нет или он битый — перекачивает.
+    """
     if force and MODEL_PATH.exists():
         MODEL_PATH.unlink()
+
     if not MODEL_PATH.exists():
         _download_model()
+
+    # Проверяем, что файл действительно HDF5
     try:
-        with h5py.File(MODEL_PATH, "r"): pass
-    except:
-        MODEL_PATH.unlink()
+        with h5py.File(MODEL_PATH, "r") as f:
+            _ = list(f.keys())
+    except OSError:
+        print("Файл модели повреждён или не является HDF5. Перекачиваем...")
+        if MODEL_PATH.exists():
+            MODEL_PATH.unlink()
         _download_model()
 
+        try:
+            with h5py.File(MODEL_PATH, "r") as f:
+                _ = list(f.keys())
+        except OSError as e2:
+            raise RuntimeError(
+                "Не удалось открыть скачанный файл модели как HDF5. "
+                "Проверь, что файл в Google Drive именно .h5 и доступен "
+                "'Anyone with the link'."
+            ) from e2
+
+
 # =========================================================
-#     СТИЛИ — ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ
+#     НАСТРОЙКА СТРАНИЦЫ + CSS
 # =========================================================
 
-st.set_page_config(page_title="CancerAI", page_icon="DNA", layout="wide")
+st.set_page_config(
+    page_title="CancerAI - Диагностика рака шейки матки",
+    page_icon="🧬",
+    layout="wide",
+)
 
-st.markdown("""
+HIDE_STREAMLIT_STYLE = """
 <style>
-/* Скрываем мусор Streamlit */
-#MainMenu, header, footer {visibility: hidden;}
-[data-testid="collapsedControl"] {display: none !important;}
-
-/* Фон и цвета */
-.stApp {background: white;}
-[data-testid="stSidebar"] {background: #f9fafb;}
-
-/* ВСЕ КНОПКИ — БЕЛЫЙ ТЕКСТ НАВСЕГДА */
-button[kind="primary"], button[kind="secondary"], .stButton > button {
-    background-color: #0f766e !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 9999px !important;
-    font-weight: 600 !important;
+/* Скрыть стандартное меню Streamlit */
+#MainMenu {
+    visibility: hidden;
 }
 
-/* Перебиваем даже самые упрямые стили Streamlit */
-button[kind="primary"] *, button[kind="secondary"] *, .stButton > button * {
-    color: white !important;
+/* Скрыть верхний и нижний бар приложения */
+header {
+    visibility: hidden;
+}
+footer {
+    visibility: hidden;
 }
 
-/* Наведение */
-button:hover, .stButton > button:hover {
-    background-color: #0b524c !important;
-    color: white !important;
+/* Скрыть кнопку сворачивания/разворачивания сайдбара ("<<") */
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"] {
+    display: none !important;
 }
-
-/* Специально для кнопки "Browse files" в file uploader */
-div[data-testid="stFileUploader"] button {
-    background-color: #0f766e !important;
-    color: white !important;
-    border-radius: 9999px !important;
-}
-div[data-testid="stFileUploader"] button * {
-    color: white !important;
-}
-div[data-testid="stFileUploader"] button:hover {
-    background-color: #0b524c !important;
-}
-
-/* Остальные стили */
-[data-testid="stFileUploader"] > section {
-    border: 2px dashed #d1d5db;
-    border-radius: 12px;
-    background: #f9fafb;
-    padding: 1.25rem;
-}
-[data-testid="stFileUploader"] > section:hover {
-    border-color: #0f766e;
-    background: #f3f4ff;
-}
-
-.page-container {max-width: 820px; margin: 0 auto;}
-table.metrics-table, table.classes-table {
-    width: 600px; max-width: 100%; margin: 20px auto;
-    border-collapse: collapse; border: 2px solid #000;
-}
-table.metrics-table th, table.metrics-table td,
-table.classes-table th, table.classes-table td {
-    border: 2px solid #000; padding: 10px; text-align: center;
-}
-table th {background: #f9fafb; font-weight: 600;}
 </style>
-""", unsafe_allow_html=True)
+"""
+st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
+
+# Основной кастомный стиль
+st.markdown(
+    """
+    <style>
+    :root {
+        color-scheme: light;
+    }
+
+    .stApp {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+    }
+
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+    .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
+        color: #111827;
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #f9fafb !important;
+        color: #111827 !important;
+        border-right: 1px solid #e5e7eb;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #111827 !important;
+    }
+
+    /* КНОПКИ (везде) */
+    .stButton > button {
+        background-color: #0f766e !important;
+        color: #ffffff !important;              /* цвет текста внутри кнопки */
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.40rem 1.2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    /* ЯВНО делаем текст в кнопке белым (и в сайдбаре тоже) */
+    .stButton > button span {
+        color: #ffffff !important;
+    }
+
+    .stButton > button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    [data-testid="stFileUploader"] > section {
+        border-radius: 12px;
+        border: 2px dashed #d1d5db;
+        background-color: #f9fafb;
+        padding: 1.25rem;
+    }
+
+    [data-testid="stFileUploader"] > section:hover {
+        border-color: #0f766e;
+        background-color: #f3f4ff;
+    }
+
+    [data-testid="stFileUploader"] label {
+        color: #4b5563 !important;
+        font-weight: 500;
+    }
+
+    [data-testid="stFileUploader"] button {
+        background-color: #0f766e !important;
+        color: #ffffff !important;
+        border: none !important;
+        border-radius: 9999px !important;
+        padding: 0.30rem 0.9rem !important;
+        font-weight: 600 !important;
+        font-size: 0.90rem !important;
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
+        transition: background-color 0.15s ease, transform 0.08s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #0b524c !important;
+        box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
+        transform: translateY(-1px);
+    }
+
+    [data-testid="stFileUploader"] button:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
+    }
+
+    .st-emotion-cache-zy6yx3 {
+         padding: 30px 0px !important;
+    }
+
+    .page-container {
+        max-width: 820px;
+        margin: 0px auto;
+        padding: 0px;
+    }
+
+    .page-container h3,
+    .page-container h4 {
+        text-align: center;
+    }
+
+    .result-title {
+        font-size: 28px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 4px;
+    }
+
+    .result-subtitle {
+        font-size: 18px;
+        font-weight: 600;
+        color: #6b7280;
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
+    table.metrics-table,
+    table.classes-table {
+        border-collapse: collapse;
+        width: 600px;
+        max-width: 600px;
+        margin-top: 8px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table.metrics-table th,
+    table.metrics-table td,
+    table.classes-table th,
+    table.classes-table td {
+        border: 2px solid #000000;
+        padding: 6px 10px;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    table.metrics-table th,
+    table.classes-table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+/* АБСОЛЮТНЫЙ ЯДЕРНЫЙ ВАРИАНТ — если ничего не помогает */
+button[kind="primary"], button[kind="secondary"] {
+    color: white !important;
+}
 
 # =========================================================
-#     САЙДБАР
+#     САЙДБАР: ОЧИСТКА КЭША
 # =========================================================
 
 with st.sidebar:
-    st.markdown("### Сервисные операции")
-    if st.button("Очистить кэш модели"):
+    st.markdown("### ⚙️ Сервисные операции")
+    if st.button("🧹 Очистить кэш модели"):
         st.cache_data.clear()
         st.cache_resource.clear()
         ensure_model_file(force=True)
-        st.success("Кэш очищен. Модель перезагружена.")
+        st.success(
+            "Кэш и файл модели очищены. "
+            "Модель будет загружена заново при следующем прогнозе."
+        )
+
 
 # =========================================================
 #     ЗАГРУЗКА МОДЕЛИ
@@ -133,81 +300,180 @@ with st.sidebar:
 
 @st.cache_resource
 def load_model_and_meta():
+    """
+    Загружает архитектуру Swin-S и веса из файла cc_vit_sts.h5.
+    """
     ensure_model_file()
+
     with h5py.File(MODEL_PATH, "r") as f:
         attrs = dict(f["info"].attrs)
-        class_names = attrs["classes"].split(",")
-        model_name = attrs["model_name"]
-        state = {k: torch.from_numpy(f["model_state_dict"][k][()]) for k in f["model_state_dict"].keys()}
-    model = timm.create_model(model_name, pretrained=False, num_classes=len(class_names))
+
+        class_names = attrs["classes"].split(",")  # HSIL,LSIL,NILM,SCC
+        model_name = attrs["model_name"]           # swin_small_patch4_window7_224
+
+        state = {}
+        for k in f["model_state_dict"].keys():
+            np_arr = f["model_state_dict"][k][()]
+            state[k] = torch.from_numpy(np_arr)
+
+    model = timm.create_model(
+        model_name,
+        pretrained=False,
+        num_classes=len(class_names),
+    )
     model.load_state_dict(state, strict=True)
     model.eval()
+
     return model, class_names
 
+
 # =========================================================
-#     ИНФЕРЕНС
+#     ПРЕДОБРАБОТКА + ПРОГНОЗ
 # =========================================================
 
-def preprocess(img):
-    tfm = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
-    ])
+def preprocess(img: Image.Image) -> torch.Tensor:
+    """resize -> tensor -> нормализация."""
+    tfm = transforms.Compose(
+        [
+            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            transforms.ToTensor(),
+            transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+        ]
+    )
     return tfm(img.convert("RGB")).unsqueeze(0)
 
-def predict_single(img):
+
+def predict_single(img: Image.Image):
+    """Прогноз по одному изображению."""
     model, class_names = load_model_and_meta()
     x = preprocess(img)
+
     with torch.no_grad():
         t0 = time.perf_counter()
         logits = model(x)
         elapsed = time.perf_counter() - t0
+
         probs = F.softmax(logits, dim=1)[0].cpu().numpy()
-        idx = np.argmax(probs)
-        return class_names[idx], float(probs[idx]), probs, elapsed, class_names
+        idx = int(np.argmax(probs))
+        confidence = float(probs[idx])
+        pred_class = class_names[idx]
+
+    return pred_class, confidence, probs, elapsed, class_names
+
 
 # =========================================================
 #     UI
 # =========================================================
 
-st.markdown('<div class="page-container">', unsafe_allow_html=True)
+st.markdown('<div class="page-container" id="upload">', unsafe_allow_html=True)
 
-st.markdown("<h2 style='text-align:center;'>Классификация фенотипов рака шейки матки</h2>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align:center; color:#6b7280;'>Загрузите цитологическое изображение.<br>Модель Swin-S выполнит прогноз фенотипа рака шейки матки.</h4>", unsafe_allow_html=True)
+st.markdown(
+    "<h2 style='text-align:center;'>🧬 Классификация фенотипов рака шейки матки</h2>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<h4 style='text-align:center; color:#6b7280;'>"
+    "Загрузите цитологическое изображение.<br>"
+    "Модель Swin-S выполнит прогноз фенотипа рака шейки матки."
+    "</h4>",
+    unsafe_allow_html=True,
+)
 
-c1, c2, c3 = st.columns([1, 2, 1])
-with c2:
-    uploaded_file = st.file_uploader("", type=["jpg", "jpeg", "png"], label_visibility="collapsed")
-    btn = st.button("Выполнить прогноз")
+col_u1, col_u2, col_u3 = st.columns([1, 2, 1])
+
+with col_u2:
+    st.markdown("<h4>Загрузите изображение (JPG/PNG)</h4>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader(
+        label="",
+        type=["jpg", "jpeg", "png"],
+        help="Выберите цитологическое изображение для анализа.",
+    )
+    btn = st.button("🔍 Выполнить прогноз")
 
 if btn:
-    if not uploaded_file:
-        st.warning("Сначала загрузите изображение!")
+    if uploaded_file is None:
+        st.warning("Пожалуйста, сначала загрузите изображение.")
     else:
         image = Image.open(uploaded_file)
-        with st.spinner("Анализ..."):
+
+        with st.spinner("Модель выполняет прогноз..."):
             pred_class, confidence, probs, elapsed, class_names = predict_single(image)
 
-        st.markdown("### Итоговые показатели")
-        df1 = pd.DataFrame({
-            "№": [1, 2, 3],
-            "Показатель": ["Время на прогноз", "Точность прогнозирования", "Предсказанный класс"],
-            "Значение": [f"{elapsed:.3f} сек", f"{confidence*100:.2f}%", pred_class]
-        })
-        st.markdown(df1.to_html(classes="metrics-table", index=False), unsafe_allow_html=True)
+        elapsed_s = f"{elapsed:.3f} сек"
+        conf_s = f"{confidence * 100:.2f} %"
 
-        st.markdown("### Детализация по всем классам")
-        df2 = pd.DataFrame({
-            "№": range(len(class_names)),
-            "Класс": class_names,
-            "Вероятность, %": [f"{p*100:.2f}" for p in probs]
-        })
-        st.markdown(df2.to_html(classes="classes-table", index=False), unsafe_allow_html=True)
+        st.markdown('<div class="page-container">', unsafe_allow_html=True)
 
-        st.markdown("### Загруженное изображение")
-        cc1, cc2, cc3 = st.columns([1, 2, 1])
-        with cc2:
-            st.image(image, use_column_width=True)
+        st.markdown(
+            '<div class="result-title">📊 Результаты диагностики</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="result-subtitle">'
+            "Результаты, проанализированные моделью искусственного интеллекта"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
+        st.markdown(
+            "<h3 style='text-align:center;'>Итоговые показатели</h3>",
+            unsafe_allow_html=True,
+        )
+
+        metrics_names = [
+            "Время на прогноз",
+            "Точность прогнозирования",
+            "Предсказанный класс",
+        ]
+        metrics_values = [elapsed_s, conf_s, pred_class]
+
+        df_metrics = pd.DataFrame(
+            {
+                "№": list(range(1, len(metrics_names) + 1)),
+                "Показатель": metrics_names,
+                "Значение": metrics_values,
+            }
+        )
+
+        metrics_html = df_metrics.to_html(
+            index=False,
+            classes="metrics-table",
+            border=0,
+            escape=False,
+        )
+        st.markdown(metrics_html, unsafe_allow_html=True)
+
+        st.markdown(
+            "<h3 style='text-align:center;'>Детализация по всем классам</h3>",
+            unsafe_allow_html=True,
+        )
+
+        df_classes = pd.DataFrame(
+            {
+                "№": list(range(len(class_names))),
+                "Класс": class_names,
+                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
+            }
+        )
+
+        classes_html = df_classes.to_html(
+            index=False,
+            classes="classes-table",
+            border=0,
+            escape=False,
+        )
+        st.markdown(classes_html, unsafe_allow_html=True)
+
+        st.markdown(
+            "<h3 style='text-align:center;'>Загруженное изображение</h3>",
+            unsafe_allow_html=True,
+        )
+
+        img_left, img_center, img_right = st.columns([1, 2, 1])
+        with img_center:
+            st.image(image, width=700)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# закрываем внешний контейнер
 st.markdown("</div>", unsafe_allow_html=True)
