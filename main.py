@@ -1,10 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+CancerAI (cancerai.uz) — Streamlit inference app.
+
+Key design goals for Railway:
+1) The app can be started with `python main.py` (no `streamlit run` command required).
+2) The service binds to Railway's provided PORT and 0.0.0.0.
+3) The ML model is downloaded at most once per container start and then cached in memory.
+4) All UI text is in English.
+"""
+
+from __future__ import annotations
+
+import os
 import time
 from pathlib import Path
+from typing import Dict, List, Tuple
 
-import gdown
 import h5py
 import numpy as np
-import pandas as pd
 from PIL import Image
 
 import streamlit as st
@@ -12,501 +25,335 @@ import torch
 import torch.nn.functional as F
 import timm
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-from torchvision import transforms
+
+# Optional (used when downloading from Google Drive)
+try:
+    import gdown  # type: ignore
+except Exception:  # pragma: no cover
+    gdown = None
 
 
 # =========================================================
-#     ПУТИ К ФАЙЛУ МОДЕЛИ И ССЫЛКА НА GOOGLE DRIVE
+# Configuration
 # =========================================================
 
-BASE_DIR = Path(__file__).resolve().parent
+APP_TITLE = "CancerAI — Cervical Cytology Classification"
+APP_ICON = "🧬"
 
-MODEL_DIR = BASE_DIR / "models"
-MODEL_PATH = MODEL_DIR / "cc_vit_sts.h5"
+# Class order used in your dataset/project
+CLASS_NAMES: List[str] = ["HSIL", "LSIL", "NILM", "SCC"]
 
-# https://drive.google.com/file/d/1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC/view?usp=sharing
-DEFAULT_MODEL_URL = (
-    "https://drive.google.com/uc"
-    "?export=download&id=1vzqeIPnuUTdFRaqjfXYaxXxMX-LpFyKC"
-)
-
-MODEL_URL = st.secrets.get("MODEL_URL", DEFAULT_MODEL_URL)
-
-IMAGE_SIZE = 224  # входной размер для Swin Small
-
-# Тексты-ЗАГЛУШКИ для описаний классов
-CLASS_DESCRIPTIONS = {
-    "HSIL": (
-        "HSIL — здесь будет текст с описанием клинического значения данного фенотипа. "
-        "Пока используется временное описание, которое ты позже заменишь на финальное."
+CLASS_DESCRIPTIONS: Dict[str, str] = {
+    "NILM": (
+        "Negative for intraepithelial lesion or malignancy. "
+        "Cells look within normal limits."
     ),
     "LSIL": (
-        "LSIL — временное пояснение. Здесь можно кратко описать характер изменений клеток "
-        "и примерные рекомендации по дальнейшему обследованию."
+        "Low-grade squamous intraepithelial lesion. "
+        "Typically reflects mild dysplasia / HPV-related changes."
     ),
-    "NILM": (
-        "NILM — результат без выраженных патологических изменений. "
-        "Точный текст-описание мы позже подставим сюда."
+    "HSIL": (
+        "High-grade squamous intraepithelial lesion. "
+        "Suggests moderate to severe dysplasia and requires clinical follow-up."
     ),
     "SCC": (
-        "SCC — предполагаемый инвазивный процесс. Сейчас это только шаблон текста, "
-        "который позже будет заменён на согласованное медицинское описание."
+        "Squamous cell carcinoma. "
+        "This category indicates malignant changes and needs urgent clinical review."
     ),
 }
 
+DISCLAIMER = (
+    "Disclaimer: This tool is for research/educational purposes and does not provide medical advice. "
+    "Always consult qualified healthcare professionals for diagnosis and treatment decisions."
+)
+
+DEFAULT_MODEL_FILENAME = "cc_vit_sts.h5"
+
+# If you mount a Railway Volume, set MODEL_DIR to a persistent path, e.g. /data/models
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "models")).resolve()
+MODEL_PATH = Path(os.getenv("MODEL_PATH", str(MODEL_DIR / DEFAULT_MODEL_FILENAME))).resolve()
+
+# If MODEL_PATH does not exist, the app will try to download the model from MODEL_URL.
+# Example: https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
+MODEL_URL = os.getenv("MODEL_URL", "").strip()
+
+# Timm model name must match your training architecture.
+TIMM_MODEL_NAME = os.getenv("TIMM_MODEL_NAME", "swin_small_patch4_window7_224")
+
+NUM_CLASSES = int(os.getenv("NUM_CLASSES", str(len(CLASS_NAMES))))
+
+DOWNLOAD_TIMEOUT_SECONDS = int(os.getenv("DOWNLOAD_TIMEOUT_SECONDS", "60"))
+DOWNLOAD_RETRIES = int(os.getenv("DOWNLOAD_RETRIES", "3"))
+
 
 # =========================================================
-#     РАБОТА С ФАЙЛОМ МОДЕЛИ
+# Helpers: Streamlit runtime detection and server bootstrap
 # =========================================================
 
-def _download_model() -> None:
-    """Качает модель из Google Drive в MODEL_PATH."""
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"Скачиваем модель из Google Drive в {MODEL_PATH}...")
-    gdown.download(MODEL_URL, str(MODEL_PATH), quiet=False)
-
-
-def ensure_model_file(force: bool = False) -> None:
+def _in_streamlit_runtime() -> bool:
     """
-    Гарантирует, что локальный файл модели существует и является
-    корректным HDF5. Если файла нет или он битый — перекачивает.
+    Returns True when the script is being executed by Streamlit.
+    This prevents infinite recursion when we bootstrap Streamlit from `python main.py`.
     """
-    if force and MODEL_PATH.exists():
-        MODEL_PATH.unlink()
-
-    if not MODEL_PATH.exists():
-        _download_model()
-
-    # Проверяем, что файл действительно HDF5
     try:
-        with h5py.File(MODEL_PATH, "r") as f:
-            _ = list(f.keys())
-    except OSError:
-        print("Файл модели повреждён или не является HDF5. Перекачиваем...")
-        if MODEL_PATH.exists():
-            MODEL_PATH.unlink()
-        _download_model()
+        from streamlit.runtime.scriptrunner import get_script_run_ctx  # type: ignore
+        return get_script_run_ctx() is not None
+    except Exception:
+        return any(k.startswith("STREAMLIT_") for k in os.environ.keys())
 
+
+def _bootstrap_streamlit_server() -> None:
+    """
+    Start a Streamlit server programmatically so `python main.py` works on Railway.
+    """
+    port = int(os.getenv("PORT", "8501"))
+
+    flag_options = {
+        "server.headless": True,
+        "server.address": "0.0.0.0",
+        "server.port": port,
+        "browser.gatherUsageStats": False,
+        "server.enableCORS": False,
+        "server.enableXsrfProtection": False,
+    }
+
+    main_script = str(Path(__file__).resolve())
+
+    from streamlit.web import bootstrap  # type: ignore
+
+    # Support multiple Streamlit versions (signature changed across releases).
+    try:
+        bootstrap.run(main_script, args=[], flag_options=flag_options, is_hello=False)
+    except TypeError:
         try:
-            with h5py.File(MODEL_PATH, "r") as f:
-                _ = list(f.keys())
-        except OSError as e2:
-            raise RuntimeError(
-                "Не удалось открыть скачанный файл модели как HDF5. "
-                "Проверь, что файл в Google Drive именно .h5 и доступен "
-                "'Anyone with the link'."
-            ) from e2
+            bootstrap.run(main_script, "", [], flag_options)  # type: ignore[arg-type]
+        except TypeError:
+            bootstrap.run(main_script, [], flag_options)  # type: ignore[arg-type]
+
 
 # =========================================================
-#     НАСТРОЙКА СТРАНИЦЫ + CSS
+# Model download & loading
 # =========================================================
 
-st.set_page_config(
-    page_title="CancerAI - Диагностика рака шейки матки",
-    page_icon="🧬",
-    layout="wide",
-)
-
-HIDE_STREAMLIT_STYLE = """
-<style>
-/* Скрыть стандартное меню Streamlit */
-#MainMenu {
-    visibility: hidden;
-}
-
-/* Скрыть верхний и нижний бар приложения */
-header {
-    visibility: hidden;
-}
-footer {
-    visibility: hidden;
-}
-
-/* Скрыть кнопку сворачивания/разворачивания сайдбара ("<<") */
-[data-testid="collapsedControl"],
-[data-testid="stSidebarCollapseButton"] {
-    display: none !important;
-}
-</style>
-"""
-st.markdown(HIDE_STREAMLIT_STYLE, unsafe_allow_html=True)
-
-# Основной кастомный стиль
-st.markdown(
+def _ensure_model_file() -> Path:
     """
-    <style>
-    :root {
-        color-scheme: light;
-    }
+    Ensures the model file exists locally. If it does not, tries to download it.
+    """
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-    .stApp {
-        background-color: #ffffff !important;
-        color: #111827 !important;
-    }
+    if MODEL_PATH.exists() and MODEL_PATH.stat().st_size > 0:
+        return MODEL_PATH
 
-    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
-    .stApp p, .stApp span, .stApp label, .stApp li, .stApp div {
-        color: #111827;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #f9fafb !important;
-        color: #111827 !important;
-        border-right: 1px solid #e5e7eb;
-    }
-
-    [data-testid="stSidebar"] * {
-        color: #111827 !important;
-    }
-
-    /* КНОПКИ (везде) */
-    .stButton > button {
-        background-color: #0f766e !important;
-        color: #ffffff !important;              /* цвет текста внутри кнопки */
-        border: none !important;
-        border-radius: 9999px !important;
-        padding: 0.40rem 1.2rem !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
-        transition: background-color 0.15s ease, transform 0.08s ease,
-                    box-shadow 0.15s ease;
-    }
-
-    /* Гарантируем белый цвет текста для всех элементов внутри кнопки */
-    .stButton > button * {
-        color: #ffffff !important;
-    }
-
-    .stButton > button:hover {
-        background-color: #0b524c !important;
-        box-shadow: 0 8px 18px rgba(15, 118, 110, 0.35);
-        transform: translateY(-1px);
-    }
-
-    .stButton > button:active {
-        transform: translateY(0);
-        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
-    }
-
-    [data-testid="stFileUploader"] > section {
-        border-radius: 12px;
-        border: 2px dashed #d1d5db;
-        background-color: #f9fafb;
-        padding: 1.25rem;
-    }
-
-    [data-testid="stFileUploader"] > section:hover {
-        border-color: #0f766e;
-        background-color: #f3f4ff;
-    }
-
-    [data-testid="stFileUploader"] label {
-        color: #4b5563 !important;
-        font-weight: 500;
-    }
-
-    /* Кнопка в uploader’е — тоже белый текст */
-    [data-testid="stFileUploader"] button {
-        background-color: #0f766e !important;
-        color: #ffffff !important;
-        border: none !important;
-        border-radius: 9999px !important;
-        padding: 0.30rem 0.9rem !important;
-        font-weight: 600 !important;
-        font-size: 0.90rem !important;
-        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
-        transition: background-color 0.15s ease, transform 0.08s ease,
-                    box-shadow 0.15s ease;
-    }
-
-    [data-testid="stFileUploader"] button * {
-        color: #ffffff !important;
-    }
-
-    [data-testid="stFileUploader"] button:hover {
-        background-color: #0b524c !important;
-        box-shadow: 0 6px 14px rgba(15, 118, 110, 0.35);
-        transform: translateY(-1px);
-    }
-
-    [data-testid="stFileUploader"] button:active {
-        transform: translateY(0);
-        box-shadow: 0 3px 8px rgba(15, 118, 110, 0.20);
-    }
-
-    .st-emotion-cache-zy6yx3 {
-         padding: 30px 0px !important;
-    }
-
-    .page-container {
-        max-width: 820px;
-        margin: 0px auto;
-        padding: 0px;
-    }
-
-    .page-container h3,
-    .page-container h4 {
-        text-align: center;
-    }
-
-    .result-title {
-        font-size: 28px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 4px;
-    }
-
-    .result-subtitle {
-        font-size: 18px;
-        font-weight: 600;
-        color: #6b7280;
-        text-align: center;
-        margin-bottom: 18px;
-    }
-
-    table.metrics-table,
-    table.classes-table {
-        border-collapse: collapse;
-        width: 600px;
-        max-width: 600px;
-        margin-top: 8px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    table.metrics-table th,
-    table.metrics-table td,
-    table.classes-table th,
-    table.classes-table td {
-        border: 2px solid #000000;
-        padding: 6px 10px;
-        font-size: 16px;
-        text-align: center;
-    }
-
-    table.metrics-table th,
-    table.classes-table th {
-        background-color: #f9fafb;
-        font-weight: 600;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-
-# =========================================================
-#     САЙДБАР: ОЧИСТКА КЭША
-# =========================================================
-
-with st.sidebar:
-    st.markdown("### ⚙️ Сервисные операции")
-    if st.button("🧹 Очистить кэш модели"):
-        st.cache_data.clear()
-        st.cache_resource.clear()
-        ensure_model_file(force=True)
-        st.success(
-            "Кэш и файл модели очищены. "
-            "Модель будет загружена заново при следующем прогнозе."
+    if not MODEL_URL:
+        raise RuntimeError(
+            "Model file was not found locally and MODEL_URL is not set. "
+            "Either upload the model into a persistent path and set MODEL_PATH, "
+            "or set MODEL_URL to a downloadable link."
         )
 
+    if gdown is None:
+        raise RuntimeError(
+            "gdown is not installed, but MODEL_URL requires download support. "
+            "Add `gdown` to requirements.txt or provide a direct HTTP URL."
+        )
 
-# =========================================================
-#     ЗАГРУЗКА МОДЕЛИ
-# =========================================================
+    tmp_path = MODEL_PATH.with_suffix(MODEL_PATH.suffix + ".partial")
 
-@st.cache_resource
-def load_model_and_meta():
+    for attempt in range(1, DOWNLOAD_RETRIES + 1):
+        try:
+            with st.spinner(f"Downloading model (attempt {attempt}/{DOWNLOAD_RETRIES})..."):
+                gdown.download(MODEL_URL, str(tmp_path), quiet=False, fuzzy=True)
+
+            if not tmp_path.exists() or tmp_path.stat().st_size == 0:
+                raise RuntimeError("Downloaded file is empty.")
+
+            # Validate that it looks like an HDF5 file
+            with h5py.File(str(tmp_path), "r"):
+                pass
+
+            tmp_path.replace(MODEL_PATH)
+            return MODEL_PATH
+
+        except Exception as e:
+            if tmp_path.exists():
+                try:
+                    tmp_path.unlink()
+                except Exception:
+                    pass
+
+            if attempt >= DOWNLOAD_RETRIES:
+                raise RuntimeError(f"Failed to download model: {e}") from e
+
+            time.sleep(2 * attempt)
+
+    return MODEL_PATH  # pragma: no cover
+
+
+def _load_state_dict_from_h5(h5_path: Path) -> Tuple[Dict[str, torch.Tensor], Dict[str, str]]:
     """
-    Загружает архитектуру Swin-S и веса из файла cc_vit_sts.h5.
+    Reads a PyTorch-like state_dict stored in an HDF5 file.
+    Returns: (state_dict, meta)
     """
-    ensure_model_file()
+    state_dict: Dict[str, torch.Tensor] = {}
+    meta: Dict[str, str] = {}
 
-    with h5py.File(MODEL_PATH, "r") as f:
-        attrs = dict(f["info"].attrs)
+    with h5py.File(str(h5_path), "r") as f:
+        if "weights" not in f:
+            raise ValueError("HDF5 file does not contain the expected 'weights' group.")
 
-        class_names = attrs["classes"].split(",")  # HSIL,LSIL,NILM,SCC
-        model_name = attrs["model_name"]           # swin_small_patch4_window7_224
+        weights_group = f["weights"]
 
-        state = {}
-        for k in f["model_state_dict"].keys():
-            np_arr = f["model_state_dict"][k][()]
-            state[k] = torch.from_numpy(np_arr)
+        for k in f.attrs.keys():
+            meta[str(k)] = str(f.attrs[k])
 
-    model = timm.create_model(
-        model_name,
-        pretrained=False,
-        num_classes=len(class_names),
-    )
-    model.load_state_dict(state, strict=True)
+        for key in weights_group.keys():
+            arr = np.array(weights_group[key])
+            tensor = torch.from_numpy(arr)
+            state_dict[key] = tensor
+
+    return state_dict, meta
+
+
+# Streamlit cache compatibility
+_CACHE_RESOURCE = getattr(st, "cache_resource", None)
+if _CACHE_RESOURCE is None:
+    # Older Streamlit fallback
+    def _cache_resource_fallback(**_kwargs):
+        return st.cache(allow_output_mutation=True)
+    _CACHE_RESOURCE = _cache_resource_fallback
+
+
+@_CACHE_RESOURCE(show_spinner=False)
+def load_model_and_meta() -> Tuple[torch.nn.Module, Dict[str, str]]:
+    """
+    Loads and caches the model for the Streamlit process lifetime.
+    """
+    h5_path = _ensure_model_file()
+    state_dict, meta = _load_state_dict_from_h5(h5_path)
+
+    model = timm.create_model(TIMM_MODEL_NAME, pretrained=False, num_classes=NUM_CLASSES)
+
+    if any(k.startswith("module.") for k in state_dict.keys()):
+        state_dict = {k.replace("module.", "", 1): v for k, v in state_dict.items()}
+
+    incompatible = model.load_state_dict(state_dict, strict=False)
+    missing = getattr(incompatible, "missing_keys", [])
+    unexpected = getattr(incompatible, "unexpected_keys", [])
+
+    if missing:
+        meta["missing_keys"] = str(missing[:20]) + (" ..." if len(missing) > 20 else "")
+    if unexpected:
+        meta["unexpected_keys"] = str(unexpected[:20]) + (" ..." if len(unexpected) > 20 else "")
+
     model.eval()
+    return model, meta
 
-    return model, class_names
+
+def preprocess_image(img: Image.Image, image_size: int = 224) -> torch.Tensor:
+    img = img.convert("RGB").resize((image_size, image_size))
+    arr = np.array(img).astype(np.float32) / 255.0
+    arr = (arr - np.array(IMAGENET_DEFAULT_MEAN)) / np.array(IMAGENET_DEFAULT_STD)
+    arr = np.transpose(arr, (2, 0, 1))  # HWC -> CHW
+    x = torch.from_numpy(arr).unsqueeze(0)
+    return x
+
+
+@torch.inference_mode()
+def predict(img: Image.Image) -> Tuple[int, np.ndarray]:
+    model, _ = load_model_and_meta()
+    x = preprocess_image(img)
+    logits = model(x)
+    probs = F.softmax(logits, dim=1).cpu().numpy()[0]
+    pred_idx = int(np.argmax(probs))
+    return pred_idx, probs
 
 
 # =========================================================
-#     ПРЕДОБРАБОТКА + ПРОГНОЗ
+# Streamlit UI
 # =========================================================
 
-def preprocess(img: Image.Image) -> torch.Tensor:
-    """resize -> tensor -> нормализация."""
-    tfm = transforms.Compose(
-        [
-            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-            transforms.ToTensor(),
-            transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
-        ]
+def render_app() -> None:
+    st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
+
+    st.title(APP_TITLE)
+    st.caption("Upload a cervical cytology image and receive a predicted class with confidence scores.")
+    st.info(DISCLAIMER)
+
+    with st.sidebar:
+        st.header("System")
+        st.subheader("Model status")
+        st.write(f"**TIMM model:** `{TIMM_MODEL_NAME}`")
+        st.write(f"**Model path:** `{MODEL_PATH}`")
+        st.write(f"**Model URL configured:** `{bool(MODEL_URL)}`")
+
+        if st.button("Clear Streamlit cache"):
+            try:
+                st.cache_resource.clear()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            try:
+                st.cache_data.clear()  # type: ignore[attr-defined]
+            except Exception:
+                pass
+            st.success("Cache cleared.")
+
+        st.divider()
+        st.subheader("Diagnostics")
+        try:
+            exists = MODEL_PATH.exists()
+            size_mb = (MODEL_PATH.stat().st_size / (1024 * 1024)) if exists else 0.0
+            st.write(f"**Model file exists:** {exists}")
+            if exists:
+                st.write(f"**Model file size:** {size_mb:.1f} MB")
+        except Exception as e:
+            st.write(f"Diagnostics error: {e}")
+
+    col_left, col_right = st.columns([1, 1])
+
+    with col_left:
+        st.subheader("1) Upload an image")
+        uploaded = st.file_uploader("Supported formats: JPG, JPEG, PNG", type=["jpg", "jpeg", "png"])
+        if uploaded is None:
+            st.stop()
+        img = Image.open(uploaded)
+        st.image(img, caption="Uploaded image", use_container_width=True)
+
+    with col_right:
+        st.subheader("2) Prediction")
+        with st.spinner("Loading model and running inference..."):
+            try:
+                pred_idx, probs = predict(img)
+                pred_label = CLASS_NAMES[pred_idx]
+            except Exception as e:
+                st.error("Inference failed. Please check Railway logs for details.")
+                st.exception(e)
+                st.stop()
+
+        st.success(f"Predicted class: **{pred_label}**")
+        st.write(CLASS_DESCRIPTIONS.get(pred_label, ""))
+
+        rows = [{"Class": name, "Probability": float(probs[i])} for i, name in enumerate(CLASS_NAMES)]
+        st.dataframe(rows, use_container_width=True, hide_index=True)
+        st.caption("Probabilities are derived from softmax and may be miscalibrated depending on the training setup.")
+
+    st.divider()
+    st.subheader("About")
+    st.write(
+        "This demo runs a vision model for cervical cytology image classification. "
+        "If you use a Railway Volume (persistent storage), set `MODEL_DIR` or `MODEL_PATH` "
+        "to a mounted path (e.g., `/data/models`) so the model remains on the server across restarts."
     )
-    return tfm(img.convert("RGB")).unsqueeze(0)
-
-
-def predict_single(img: Image.Image):
-    """Прогноз по одному изображению."""
-    model, class_names = load_model_and_meta()
-    x = preprocess(img)
-
-    with torch.no_grad():
-        t0 = time.perf_counter()
-        logits = model(x)
-        elapsed = time.perf_counter() - t0
-
-        probs = F.softmax(logits, dim=1)[0].cpu().numpy()
-        idx = int(np.argmax(probs))
-        confidence = float(probs[idx])
-        pred_class = class_names[idx]
-
-    return pred_class, confidence, probs, elapsed, class_names
 
 
 # =========================================================
-#     UI
+# Entrypoint
 # =========================================================
 
-st.markdown('<div class="page-container" id="upload">', unsafe_allow_html=True)
+# When executed as `python main.py` (e.g., on Railway), bootstrap Streamlit.
+if __name__ == "__main__" and not _in_streamlit_runtime():
+    _bootstrap_streamlit_server()
+    raise SystemExit(0)
 
-st.markdown(
-    "<h2 style='text-align:center;'>🧬 Классификация фенотипов рака шейки матки</h2>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    "<h4 style='text-align:center; color:#6b7280;'>"
-    "Загрузите цитологическое изображение.<br>"
-    "Модель Swin-S выполнит прогноз фенотипа рака шейки матки."
-    "</h4>",
-    unsafe_allow_html=True,
-)
-
-col_u1, col_u2, col_u3 = st.columns([1, 2, 1])
-
-with col_u2:
-    st.markdown("<h4>Загрузите изображение (JPG/PNG)</h4>", unsafe_allow_html=True)
-    uploaded_file = st.file_uploader(
-        label="",
-        type=["jpg", "jpeg", "png"],
-        help="Выберите цитологическое изображение для анализа.",
-    )
-    btn = st.button("🔍 Выполнить прогноз")
-
-if btn:
-    if uploaded_file is None:
-        st.warning("Пожалуйста, сначала загрузите изображение.")
-    else:
-        image = Image.open(uploaded_file)
-
-        with st.spinner("Модель выполняет прогноз..."):
-            pred_class, confidence, probs, elapsed, class_names = predict_single(image)
-
-        elapsed_s = f"{elapsed:.3f} сек"
-        conf_s = f"{confidence * 100:.2f} %"
-
-        st.markdown('<div class="page-container">', unsafe_allow_html=True)
-
-        st.markdown(
-            '<div class="result-title">📊 Результаты диагностики</div>',
-            unsafe_allow_html=True,
-        )
-        st.markdown(
-            '<div class="result-subtitle">'
-            "Результаты, проанализированные моделью искусственного интеллекта"
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            "<h3 style='text-align:center;'>Итоговые показатели</h3>",
-            unsafe_allow_html=True,
-        )
-
-        metrics_names = [
-            "Время на прогноз",
-            "Точность прогнозирования",
-            "Предсказанный класс",
-        ]
-        metrics_values = [elapsed_s, conf_s, pred_class]
-
-        df_metrics = pd.DataFrame(
-            {
-                "№": list(range(1, len(metrics_names) + 1)),
-                "Показатель": metrics_names,
-                "Значение": metrics_values,
-            }
-        )
-
-        metrics_html = df_metrics.to_html(
-            index=False,
-            classes="metrics-table",
-            border=0,
-            escape=False,
-        )
-        st.markdown(metrics_html, unsafe_allow_html=True)
-
-        st.markdown(
-            "<h3 style='text-align:center;'>Детализация по всем классам</h3>",
-            unsafe_allow_html=True,
-        )
-
-        df_classes = pd.DataFrame(
-            {
-                "№": list(range(len(class_names))),
-                "Класс": class_names,
-                "Вероятность, %": [round(float(p) * 100, 2) for p in probs],
-            }
-        )
-
-        classes_html = df_classes.to_html(
-            index=False,
-            classes="classes-table",
-            border=0,
-            escape=False,
-        )
-        st.markdown(classes_html, unsafe_allow_html=True)
-        # ---------- ТЕКСТОВАЯ ИНТЕРПРЕТАЦИЯ ДЛЯ ПРЕДСКАЗАННОГО КЛАССА ----------
-        st.markdown(
-            "<h3 style='text-align:center; margin-top: 24px;'>Интерпретация результата</h3>",
-            unsafe_allow_html=True,
-        )
-
-        description_text = CLASS_DESCRIPTIONS.get(
-            pred_class,
-            "Описание для данного класса пока не добавлено.",
-        )
-
-        st.markdown(
-            f"<p style='font-size:16px; text-align:justify;'>{description_text}</p>",
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            "<h3 style='text-align:center;'>Загруженное изображение</h3>",
-            unsafe_allow_html=True,
-        )
-
-        img_left, img_center, img_right = st.columns([1, 2, 1])
-        with img_center:
-            st.image(image, width=700)
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# закрываем внешний контейнер
-st.markdown("</div>", unsafe_allow_html=True)
+# When executed by Streamlit, render the UI.
+if _in_streamlit_runtime():
+    render_app()
