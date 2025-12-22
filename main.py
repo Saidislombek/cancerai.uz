@@ -1,22 +1,30 @@
-# -*- coding: utf-8 -*-
 """
-CancerAI (cancerai.uz) — Streamlit inference app.
+Cervical Cytology AI — Streamlit application entrypoint.
 
-Key design goals for Railway:
-1) The app can be started with `python main.py` (no `streamlit run` command required).
-2) The service binds to Railway's provided PORT and 0.0.0.0.
-3) The ML model is downloaded at most once per container start and then cached in memory.
-4) All UI text is in English.
+This file is designed to work in two modes:
+
+1) Streamlit mode (recommended locally):
+   streamlit run main.py
+
+2) "Plain Python" mode (useful for Railway/other PaaS):
+   python main.py
+
+In plain Python mode, the script will automatically re-launch itself via:
+   python -m streamlit run main.py ...
+
+This avoids having to configure "streamlit run" as the platform start command,
+while still running the Streamlit server correctly.
 """
 
 from __future__ import annotations
 
 import os
-import time
+import sys
+import json
+import logging
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import h5py
 import numpy as np
 from PIL import Image
 
@@ -24,336 +32,346 @@ import streamlit as st
 import torch
 import torch.nn.functional as F
 import timm
+import h5py
+import gdown
+from torchvision import transforms
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 
-# Optional (used when downloading from Google Drive)
-try:
-    import gdown  # type: ignore
-except Exception:  # pragma: no cover
-    gdown = None
 
-
-# =========================================================
-# Configuration
-# =========================================================
-
-APP_TITLE = "CancerAI — Cervical Cytology Classification"
-APP_ICON = "🧬"
-
-# Class order used in your dataset/project
-CLASS_NAMES: List[str] = ["HSIL", "LSIL", "NILM", "SCC"]
-
-CLASS_DESCRIPTIONS: Dict[str, str] = {
-    "NILM": (
-        "Negative for intraepithelial lesion or malignancy. "
-        "Cells look within normal limits."
-    ),
-    "LSIL": (
-        "Low-grade squamous intraepithelial lesion. "
-        "Typically reflects mild dysplasia / HPV-related changes."
-    ),
-    "HSIL": (
-        "High-grade squamous intraepithelial lesion. "
-        "Suggests moderate to severe dysplasia and requires clinical follow-up."
-    ),
-    "SCC": (
-        "Squamous cell carcinoma. "
-        "This category indicates malignant changes and needs urgent clinical review."
-    ),
-}
-
-DISCLAIMER = (
-    "Disclaimer: This tool is for research/educational purposes and does not provide medical advice. "
-    "Always consult qualified healthcare professionals for diagnosis and treatment decisions."
+# -----------------------------------------------------------------------------
+# Logging
+# -----------------------------------------------------------------------------
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s | %(levelname)s | %(message)s",
 )
+log = logging.getLogger("cancerai")
 
-DEFAULT_MODEL_FILENAME = "cc_vit_sts.h5"
 
-# If you mount a Railway Volume, set MODEL_DIR to a persistent path, e.g. /data/models
-MODEL_DIR = Path(os.getenv("MODEL_DIR", "models")).resolve()
-MODEL_PATH = Path(os.getenv("MODEL_PATH", str(MODEL_DIR / DEFAULT_MODEL_FILENAME))).resolve()
+# -----------------------------------------------------------------------------
+# App configuration
+# -----------------------------------------------------------------------------
+APP_TITLE = "Cervical Cytology AI"
+APP_SUBTITLE = "Cervical cytology phenotype prediction from microscopy images"
 
-# If MODEL_PATH does not exist, the app will try to download the model from MODEL_URL.
-# Example: https://drive.google.com/file/d/<FILE_ID>/view?usp=sharing
+# Recommended label order for your project (kept as a fallback).
+DEFAULT_CLASS_ORDER = ["HSIL", "LSIL", "NILM", "SCC"]
+
+# Use a persistent directory when possible.
+# On Railway, attach a Volume and mount it at /data (or keep the default).
+MODEL_DIR = Path(os.getenv("MODEL_DIR", "/data/models")).resolve()
+MODEL_FILENAME = os.getenv("MODEL_FILENAME", "cc_vit_sts.h5")
+MODEL_PATH = (MODEL_DIR / MODEL_FILENAME).resolve()
+
+# Provide your Google Drive (or any HTTPS) download URL via env var.
+# Example (Google Drive):
+#   https://drive.google.com/uc?id=<FILE_ID>
 MODEL_URL = os.getenv("MODEL_URL", "").strip()
 
-# Timm model name must match your training architecture.
-TIMM_MODEL_NAME = os.getenv("TIMM_MODEL_NAME", "swin_small_patch4_window7_224")
-
-NUM_CLASSES = int(os.getenv("NUM_CLASSES", str(len(CLASS_NAMES))))
-
-DOWNLOAD_TIMEOUT_SECONDS = int(os.getenv("DOWNLOAD_TIMEOUT_SECONDS", "60"))
-DOWNLOAD_RETRIES = int(os.getenv("DOWNLOAD_RETRIES", "3"))
+# Streamlit server settings for PaaS environments.
+SERVER_HOST = os.getenv("SERVER_HOST", "0.0.0.0")
+SERVER_PORT = int(os.getenv("PORT", "8501"))
 
 
-# =========================================================
-# Helpers: Streamlit runtime detection and server bootstrap
-# =========================================================
-
+# -----------------------------------------------------------------------------
+# Helper functions
+# -----------------------------------------------------------------------------
 def _in_streamlit_runtime() -> bool:
-    """
-    Returns True when the script is being executed by Streamlit.
-    This prevents infinite recursion when we bootstrap Streamlit from `python main.py`.
-    """
+    """Return True if the script is currently executed by Streamlit."""
     try:
         from streamlit.runtime.scriptrunner import get_script_run_ctx  # type: ignore
+
         return get_script_run_ctx() is not None
     except Exception:
-        return any(k.startswith("STREAMLIT_") for k in os.environ.keys())
+        return False
 
 
-def _bootstrap_streamlit_server() -> None:
+def _relaunch_with_streamlit() -> None:
     """
-    Start a Streamlit server programmatically so `python main.py` works on Railway.
+    Relaunch this file using Streamlit when the platform starts it via:
+        python main.py
     """
-    port = int(os.getenv("PORT", "8501"))
+    args = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(Path(__file__).resolve()),
+        "--server.address",
+        SERVER_HOST,
+        "--server.port",
+        str(SERVER_PORT),
+        "--server.headless",
+        "true",
+        "--browser.gatherUsageStats",
+        "false",
+    ]
+    log.info("Re-launching via Streamlit: %s", " ".join(args))
+    os.execv(sys.executable, args)
 
-    flag_options = {
-        "server.headless": True,
-        "server.address": "0.0.0.0",
-        "server.port": port,
-        "browser.gatherUsageStats": False,
-        "server.enableCORS": False,
-        "server.enableXsrfProtection": False,
-    }
 
-    main_script = str(Path(__file__).resolve())
+def ensure_model_file(model_path: Path, model_url: str) -> Path:
+    """
+    Ensure the model exists on disk.
 
-    from streamlit.web import bootstrap  # type: ignore
+    - If the file exists, do nothing.
+    - If not, download it once (recommended to store in a persistent volume).
+    """
+    model_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Support multiple Streamlit versions (signature changed across releases).
+    if model_path.exists() and model_path.stat().st_size > 0:
+        return model_path
+
+    if not model_url:
+        raise RuntimeError(
+            "Model file is missing and MODEL_URL is not set. "
+            "Set MODEL_URL in Railway -> Variables (or provide the model file in the image/volume)."
+        )
+
+    log.info("Model not found. Downloading to: %s", model_path)
+    # gdown supports both file IDs and direct links (best: https://drive.google.com/uc?id=<id>)
+    out = gdown.download(url=model_url, output=str(model_path), quiet=False, fuzzy=True)
+    if not out or not model_path.exists():
+        raise RuntimeError("Model download failed. Check MODEL_URL and file permissions (must be accessible).")
+
+    log.info("Model downloaded successfully: %s (%.1f MB)", model_path, model_path.stat().st_size / (1024 * 1024))
+    return model_path
+
+
+def _decode_classes_attr(value) -> List[str]:
+    """
+    Decode HDF5 attribute "classes" into a list of strings.
+    Handles bytes, numpy arrays, and JSON-encoded lists.
+    """
+    if value is None:
+        return []
     try:
-        bootstrap.run(main_script, args=[], flag_options=flag_options, is_hello=False)
-    except TypeError:
-        try:
-            bootstrap.run(main_script, "", [], flag_options)  # type: ignore[arg-type]
-        except TypeError:
-            bootstrap.run(main_script, [], flag_options)  # type: ignore[arg-type]
-
-
-# =========================================================
-# Model download & loading
-# =========================================================
-
-def _ensure_model_file() -> Path:
-    """
-    Ensures the model file exists locally. If it does not, tries to download it.
-    """
-    MODEL_DIR.mkdir(parents=True, exist_ok=True)
-
-    if MODEL_PATH.exists() and MODEL_PATH.stat().st_size > 0:
-        return MODEL_PATH
-
-    if not MODEL_URL:
-        raise RuntimeError(
-            "Model file was not found locally and MODEL_URL is not set. "
-            "Either upload the model into a persistent path and set MODEL_PATH, "
-            "or set MODEL_URL to a downloadable link."
-        )
-
-    if gdown is None:
-        raise RuntimeError(
-            "gdown is not installed, but MODEL_URL requires download support. "
-            "Add `gdown` to requirements.txt or provide a direct HTTP URL."
-        )
-
-    tmp_path = MODEL_PATH.with_suffix(MODEL_PATH.suffix + ".partial")
-
-    for attempt in range(1, DOWNLOAD_RETRIES + 1):
-        try:
-            with st.spinner(f"Downloading model (attempt {attempt}/{DOWNLOAD_RETRIES})..."):
-                gdown.download(MODEL_URL, str(tmp_path), quiet=False, fuzzy=True)
-
-            if not tmp_path.exists() or tmp_path.stat().st_size == 0:
-                raise RuntimeError("Downloaded file is empty.")
-
-            # Validate that it looks like an HDF5 file
-            with h5py.File(str(tmp_path), "r"):
+        if isinstance(value, (bytes, bytearray)):
+            s = value.decode("utf-8", errors="ignore").strip()
+            # Try JSON first
+            try:
+                parsed = json.loads(s)
+                if isinstance(parsed, list):
+                    return [str(x) for x in parsed]
+            except Exception:
                 pass
+            # Fallback: comma-separated
+            return [x.strip() for x in s.split(",") if x.strip()]
 
-            tmp_path.replace(MODEL_PATH)
-            return MODEL_PATH
+        if isinstance(value, (list, tuple, np.ndarray)):
+            out: List[str] = []
+            for x in value:
+                if isinstance(x, (bytes, bytearray)):
+                    out.append(x.decode("utf-8", errors="ignore"))
+                else:
+                    out.append(str(x))
+            return out
 
-        except Exception as e:
-            if tmp_path.exists():
-                try:
-                    tmp_path.unlink()
-                except Exception:
-                    pass
-
-            if attempt >= DOWNLOAD_RETRIES:
-                raise RuntimeError(f"Failed to download model: {e}") from e
-
-            time.sleep(2 * attempt)
-
-    return MODEL_PATH  # pragma: no cover
+        return [str(value)]
+    except Exception:
+        return []
 
 
-def _load_state_dict_from_h5(h5_path: Path) -> Tuple[Dict[str, torch.Tensor], Dict[str, str]]:
+def load_model_and_metadata(model_path: Path) -> Tuple[torch.nn.Module, List[str], Dict]:
     """
-    Reads a PyTorch-like state_dict stored in an HDF5 file.
-    Returns: (state_dict, meta)
+    Load a timm model and its state_dict from an HDF5 (.h5) file.
+    The file is expected to contain:
+      - attrs["classes"] (optional)
+      - attrs["model_config"] (optional JSON)
+      - group "model_state_dict" with datasets for each tensor
     """
-    state_dict: Dict[str, torch.Tensor] = {}
-    meta: Dict[str, str] = {}
+    with h5py.File(str(model_path), "r") as f:
+        classes_raw = f.attrs.get("classes", None)
+        class_names = _decode_classes_attr(classes_raw) or DEFAULT_CLASS_ORDER
 
-    with h5py.File(str(h5_path), "r") as f:
-        if "weights" not in f:
-            raise ValueError("HDF5 file does not contain the expected 'weights' group.")
+        cfg_raw = f.attrs.get("model_config", None)
+        model_cfg: Dict = {}
+        if cfg_raw is not None:
+            try:
+                if isinstance(cfg_raw, (bytes, bytearray)):
+                    model_cfg = json.loads(cfg_raw.decode("utf-8", errors="ignore"))
+                elif isinstance(cfg_raw, str):
+                    model_cfg = json.loads(cfg_raw)
+            except Exception:
+                model_cfg = {}
 
-        weights_group = f["weights"]
+        model_name = model_cfg.get("model_name", "swin_small_patch4_window7_224")
+        num_classes = int(model_cfg.get("num_classes", len(class_names)))
+        pretrained = bool(model_cfg.get("pretrained", False))
 
-        for k in f.attrs.keys():
-            meta[str(k)] = str(f.attrs[k])
+        log.info("Loading model: name=%s num_classes=%s pretrained=%s", model_name, num_classes, pretrained)
+        model = timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
 
-        for key in weights_group.keys():
-            arr = np.array(weights_group[key])
-            tensor = torch.from_numpy(arr)
+        # Load state_dict
+        if "model_state_dict" not in f:
+            raise RuntimeError('Invalid model file: group "model_state_dict" not found.')
+
+        state_group = f["model_state_dict"]
+        state_dict = {}
+        for key in state_group.keys():
+            arr = state_group[key][()]
+            tensor = torch.tensor(arr)
             state_dict[key] = tensor
 
-    return state_dict, meta
+        model.load_state_dict(state_dict, strict=True)
+        model.eval()
+
+    return model, class_names, model_cfg
 
 
-# Streamlit cache compatibility
-_CACHE_RESOURCE = getattr(st, "cache_resource", None)
-if _CACHE_RESOURCE is None:
-    # Older Streamlit fallback
-    def _cache_resource_fallback(**_kwargs):
-        return st.cache(allow_output_mutation=True)
-    _CACHE_RESOURCE = _cache_resource_fallback
-
-
-@_CACHE_RESOURCE(show_spinner=False)
-def load_model_and_meta() -> Tuple[torch.nn.Module, Dict[str, str]]:
-    """
-    Loads and caches the model for the Streamlit process lifetime.
-    """
-    h5_path = _ensure_model_file()
-    state_dict, meta = _load_state_dict_from_h5(h5_path)
-
-    model = timm.create_model(TIMM_MODEL_NAME, pretrained=False, num_classes=NUM_CLASSES)
-
-    if any(k.startswith("module.") for k in state_dict.keys()):
-        state_dict = {k.replace("module.", "", 1): v for k, v in state_dict.items()}
-
-    incompatible = model.load_state_dict(state_dict, strict=False)
-    missing = getattr(incompatible, "missing_keys", [])
-    unexpected = getattr(incompatible, "unexpected_keys", [])
-
-    if missing:
-        meta["missing_keys"] = str(missing[:20]) + (" ..." if len(missing) > 20 else "")
-    if unexpected:
-        meta["unexpected_keys"] = str(unexpected[:20]) + (" ..." if len(unexpected) > 20 else "")
-
-    model.eval()
-    return model, meta
-
-
-def preprocess_image(img: Image.Image, image_size: int = 224) -> torch.Tensor:
-    img = img.convert("RGB").resize((image_size, image_size))
-    arr = np.array(img).astype(np.float32) / 255.0
-    arr = (arr - np.array(IMAGENET_DEFAULT_MEAN)) / np.array(IMAGENET_DEFAULT_STD)
-    arr = np.transpose(arr, (2, 0, 1))  # HWC -> CHW
-    x = torch.from_numpy(arr).unsqueeze(0)
-    return x
-
-
-@torch.inference_mode()
-def predict(img: Image.Image) -> Tuple[int, np.ndarray]:
-    model, _ = load_model_and_meta()
-    x = preprocess_image(img)
-    logits = model(x)
-    probs = F.softmax(logits, dim=1).cpu().numpy()[0]
-    pred_idx = int(np.argmax(probs))
-    return pred_idx, probs
-
-
-# =========================================================
-# Streamlit UI
-# =========================================================
-
-def render_app() -> None:
-    st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
-
-    st.title(APP_TITLE)
-    st.caption("Upload a cervical cytology image and receive a predicted class with confidence scores.")
-    st.info(DISCLAIMER)
-
-    with st.sidebar:
-        st.header("System")
-        st.subheader("Model status")
-        st.write(f"**TIMM model:** `{TIMM_MODEL_NAME}`")
-        st.write(f"**Model path:** `{MODEL_PATH}`")
-        st.write(f"**Model URL configured:** `{bool(MODEL_URL)}`")
-
-        if st.button("Clear Streamlit cache"):
-            try:
-                st.cache_resource.clear()  # type: ignore[attr-defined]
-            except Exception:
-                pass
-            try:
-                st.cache_data.clear()  # type: ignore[attr-defined]
-            except Exception:
-                pass
-            st.success("Cache cleared.")
-
-        st.divider()
-        st.subheader("Diagnostics")
-        try:
-            exists = MODEL_PATH.exists()
-            size_mb = (MODEL_PATH.stat().st_size / (1024 * 1024)) if exists else 0.0
-            st.write(f"**Model file exists:** {exists}")
-            if exists:
-                st.write(f"**Model file size:** {size_mb:.1f} MB")
-        except Exception as e:
-            st.write(f"Diagnostics error: {e}")
-
-    col_left, col_right = st.columns([1, 1])
-
-    with col_left:
-        st.subheader("1) Upload an image")
-        uploaded = st.file_uploader("Supported formats: JPG, JPEG, PNG", type=["jpg", "jpeg", "png"])
-        if uploaded is None:
-            st.stop()
-        img = Image.open(uploaded)
-        st.image(img, caption="Uploaded image", use_container_width=True)
-
-    with col_right:
-        st.subheader("2) Prediction")
-        with st.spinner("Loading model and running inference..."):
-            try:
-                pred_idx, probs = predict(img)
-                pred_label = CLASS_NAMES[pred_idx]
-            except Exception as e:
-                st.error("Inference failed. Please check Railway logs for details.")
-                st.exception(e)
-                st.stop()
-
-        st.success(f"Predicted class: **{pred_label}**")
-        st.write(CLASS_DESCRIPTIONS.get(pred_label, ""))
-
-        rows = [{"Class": name, "Probability": float(probs[i])} for i, name in enumerate(CLASS_NAMES)]
-        st.dataframe(rows, use_container_width=True, hide_index=True)
-        st.caption("Probabilities are derived from softmax and may be miscalibrated depending on the training setup.")
-
-    st.divider()
-    st.subheader("About")
-    st.write(
-        "This demo runs a vision model for cervical cytology image classification. "
-        "If you use a Railway Volume (persistent storage), set `MODEL_DIR` or `MODEL_PATH` "
-        "to a mounted path (e.g., `/data/models`) so the model remains on the server across restarts."
+def build_transform(img_size: int = 224) -> transforms.Compose:
+    return transforms.Compose(
+        [
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD),
+        ]
     )
 
 
-# =========================================================
+@st.cache_resource(show_spinner=False)
+def get_inference_bundle() -> Tuple[torch.nn.Module, List[str], transforms.Compose]:
+    """
+    Cache the model and preprocessing pipeline across reruns.
+    """
+    model_file = ensure_model_file(MODEL_PATH, MODEL_URL)
+    model, class_names, cfg = load_model_and_metadata(model_file)
+
+    img_size = int(cfg.get("img_size", 224)) if isinstance(cfg, dict) else 224
+    tfm = build_transform(img_size=img_size)
+    return model, class_names, tfm
+
+
+def predict(image: Image.Image) -> Tuple[str, float, Dict[str, float]]:
+    """
+    Run inference and return:
+      - predicted label
+      - confidence (0..1)
+      - probability per class
+    """
+    model, class_names, tfm = get_inference_bundle()
+
+    x = tfm(image.convert("RGB")).unsqueeze(0)
+    with torch.no_grad():
+        logits = model(x)
+        probs = F.softmax(logits, dim=1).cpu().numpy().reshape(-1)
+
+    # Align lengths safely
+    n = min(len(class_names), len(probs))
+    class_names = class_names[:n]
+    probs = probs[:n]
+
+    best_idx = int(np.argmax(probs))
+    best_label = class_names[best_idx]
+    best_conf = float(probs[best_idx])
+
+    prob_map = {cls: float(p) for cls, p in zip(class_names, probs)}
+    return best_label, best_conf, prob_map
+
+
+# -----------------------------------------------------------------------------
+# Streamlit UI
+# -----------------------------------------------------------------------------
+PHENOTYPE_INFO = {
+    "NILM": (
+        "Negative for intraepithelial lesion or malignancy (NILM). "
+        "This suggests no cytological evidence of a precancerous lesion or malignancy."
+    ),
+    "LSIL": (
+        "Low-grade squamous intraepithelial lesion (LSIL). "
+        "Often associated with transient HPV infection; follow local clinical guidelines."
+    ),
+    "HSIL": (
+        "High-grade squamous intraepithelial lesion (HSIL). "
+        "Indicates a higher risk of significant precancerous changes; clinical follow-up is essential."
+    ),
+    "SCC": (
+        "Squamous cell carcinoma (SCC). "
+        "A malignant category; urgent clinical evaluation is required."
+    ),
+}
+
+
+def render_app() -> None:
+    st.set_page_config(page_title=APP_TITLE, page_icon="🧬", layout="centered")
+
+    st.title(APP_TITLE)
+    st.caption(APP_SUBTITLE)
+
+    st.info(
+        "Disclaimer: This tool is for research/educational use only and does not provide medical advice. "
+        "Always consult a qualified clinician for diagnosis and treatment decisions."
+    )
+
+    with st.expander("How it works", expanded=False):
+        st.write(
+            "1) Upload a cervical cytology microscopy image.\n"
+            "2) The model performs a single-image inference.\n"
+            "3) You receive a predicted phenotype and class probabilities."
+        )
+        st.write(
+            "Operational note: The model file is downloaded once (if missing) and then cached in memory for faster reruns."
+        )
+
+    uploaded = st.file_uploader("Upload an image (JPG/PNG)", type=["jpg", "jpeg", "png"])
+
+    if not uploaded:
+        st.stop()
+
+    try:
+        image = Image.open(uploaded)
+    except Exception as e:
+        st.error(f"Could not read the uploaded image: {e}")
+        st.stop()
+
+    st.image(image, caption="Uploaded image", use_container_width=True)
+
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        run = st.button("Run inference", type="primary", use_container_width=True)
+    with col2:
+        st.write("")  # spacing
+
+    if not run:
+        st.stop()
+
+    with st.spinner("Running inference..."):
+        try:
+            label, conf, prob_map = predict(image)
+        except Exception as e:
+            st.error(f"Inference failed: {e}")
+            st.stop()
+
+    st.success(f"Prediction: **{label}**  |  Confidence: **{conf:.2%}**")
+
+    # Explanation
+    st.subheader("Interpretation")
+    st.write(PHENOTYPE_INFO.get(label, "No description is available for this label."))
+
+    # Probabilities table
+    st.subheader("Class probabilities")
+    prob_items = sorted(prob_map.items(), key=lambda x: x[1], reverse=True)
+    st.table(
+        {
+            "Class": [k for k, _ in prob_items],
+            "Probability": [f"{v:.4f}" for _, v in prob_items],
+        }
+    )
+
+    st.divider()
+    st.caption("© CancerAI — Streamlit on Railway")
+
+
+# -----------------------------------------------------------------------------
 # Entrypoint
-# =========================================================
-
-# When executed as `python main.py` (e.g., on Railway), bootstrap Streamlit.
-if __name__ == "__main__" and not _in_streamlit_runtime():
-    _bootstrap_streamlit_server()
-    raise SystemExit(0)
-
-# When executed by Streamlit, render the UI.
-if _in_streamlit_runtime():
+# -----------------------------------------------------------------------------
+if __name__ == "__main__":
+    # If the platform runs `python main.py`, we re-launch the Streamlit server.
+    # If Streamlit is already running (script executed by Streamlit), render the app normally.
+    if not _in_streamlit_runtime():
+        _relaunch_with_streamlit()
+    else:
+        render_app()
+else:
+    # When imported by Streamlit (rare), render the app.
     render_app()
