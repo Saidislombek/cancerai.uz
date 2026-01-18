@@ -6,3 +6,9 @@ pillow==11.1.0
 numpy==1.26.4
 h5py==3.12.1
 tensorflow==2.16.1
+
+torch>=2.1.0
+timm
+h5py
+numpy
+Pillow
