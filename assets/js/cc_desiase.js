@@ -1,18 +1,30 @@
 const el = (id) => document.getElementById(id);
 
 const CLASS_DESCRIPTIONS = {
-  HSIL:
-    "HSIL — здесь будет текст с описанием клинического значения данного фенотипа. " +
-    "Пока используется временное описание, которое ты позже заменишь на финальное.",
-  LSIL:
-    "LSIL — временное пояснение. Здесь можно кратко описать характер изменений клеток " +
-    "и примерные рекомендации по дальнейшему обследованию.",
   NILM:
-    "NILM — результат без выраженных патологических изменений. " +
-    "Точный текст-описание мы позже подставим сюда.",
+    "NILM (Negative for Intraepithelial Lesion or Malignancy) — цитологический результат ПАП-теста, " +
+    "означающий отсутствие признаков внутриэпителиального поражения и злокачественности: " +
+    "не выявлены раковые клетки или другие атипичные клетки эпителия шейки матки. " +
+    "Возможны сопутствующие реактивные/воспалительные изменения без признаков предрака.",
+
+  LSIL:
+    "LSIL (Low-grade Squamous Intraepithelial Lesion) — низкодифференцированное плоскоклеточное " +
+    "внутриэпителиальное поражение: лёгкие (умеренно выраженные) цитологические атипии плоского эпителия, " +
+    "часто ассоциированные с ВПЧ-инфекцией; обычно соответствует CIN 1 (лёгкая дисплазия). " +
+    "Многие случаи регрессируют самостоятельно, но требуют наблюдения по клиническим рекомендациям.",
+
+  HSIL:
+    "HSIL (High-grade Squamous Intraepithelial Lesion) — высокодифференцированное плоскоклеточное " +
+    "внутриэпителиальное поражение: выраженные цитологические атипии плоского эпителия, " +
+    "соответствующие более высокому риску значимого предрака; обычно соответствует CIN 2–CIN 3 " +
+    "(умеренная/тяжёлая дисплазия, включая carcinoma in situ). " +
+    "Результат требует прицельной верификации (как правило, кольпоскопия/биопсия) по протоколам.",
+
   SCC:
-    "SCC — предполагаемый инвазивный процесс. Сейчас это только шаблон текста, " +
-    "который позже будет заменён на согласованное медицинское описание.",
+    "SCC (Squamous Cell Carcinoma) — плоскоклеточный рак: злокачественная опухоль, " +
+    "происходящая из плоских клеток эпителия шейки матки. " +
+    "В цитологическом заключении категория 'SCC' означает признаки, соответствующие раку, " +
+    "и требует срочного уточнения диагноза в специализированном порядке.",
 };
 
 const FIXED_CLASS_ORDER = ["HSIL", "LSIL", "NILM", "SCC"];
@@ -24,12 +36,12 @@ function setStatus(kind, msg) {
   const box = el("status");
   if (!box) return;
 
-  box.classList.remove("hidden");
-  box.className = "rounded-lg border p-3 text-sm";
+  box.classList.remove("d-none", "alert-success", "alert-danger", "alert-secondary");
+  box.classList.add("alert");
 
-  if (kind === "error") box.classList.add("bg-red-50", "border-red-200", "text-red-900");
-  if (kind === "ok") box.classList.add("bg-green-50", "border-green-200", "text-green-900");
-  if (kind === "info") box.classList.add("bg-gray-50", "border-gray-200", "text-gray-900");
+  if (kind === "error") box.classList.add("alert-danger");
+  else if (kind === "ok") box.classList.add("alert-success");
+  else box.classList.add("alert-secondary");
 
   box.textContent = msg;
 }
@@ -37,17 +49,16 @@ function setStatus(kind, msg) {
 function clearStatus() {
   const box = el("status");
   if (!box) return;
-  box.classList.add("hidden");
+  box.classList.add("d-none");
   box.textContent = "";
 }
 
-/**
- * Полностью скрывает блок результатов и чистит данные в DOM.
- * Важно: используем при "Очистить кэш модели", чтобы старый результат исчез.
- */
 function clearResultsUI() {
   const results = el("results");
-  if (results) results.classList.add("hidden");
+  if (results) results.classList.add("d-none");
+
+  const placeholder = el("resultsPlaceholder");
+  if (placeholder) placeholder.classList.remove("d-none");
 
   const metricsTbody = el("metricsTbody");
   if (metricsTbody) metricsTbody.innerHTML = "";
@@ -70,14 +81,13 @@ function setFile(file) {
   const runBtn = el("runBtn");
 
   if (!selectedFile) {
-    if (row) row.classList.add("hidden");
+    if (row) row.classList.add("d-none");
     if (name) name.textContent = "";
     if (runBtn) runBtn.disabled = true;
 
     if (selectedUrl) URL.revokeObjectURL(selectedUrl);
     selectedUrl = null;
 
-    // при сбросе файла — прячем результаты
     clearResultsUI();
     return;
   }
@@ -85,7 +95,7 @@ function setFile(file) {
   if (selectedUrl) URL.revokeObjectURL(selectedUrl);
   selectedUrl = URL.createObjectURL(selectedFile);
 
-  if (row) row.classList.remove("hidden");
+  if (row) row.classList.remove("d-none");
   if (name) name.textContent = selectedFile.name;
   if (runBtn) runBtn.disabled = false;
 }
@@ -128,21 +138,26 @@ function setupUploader() {
   });
 
   dropzone.addEventListener("dragover", () => {
-    dropzone.classList.add("border-teal-700", "bg-indigo-50");
+    dropzone.classList.add("border-primary");
+    dropzone.classList.remove("bg-light");
+    dropzone.classList.add("bg-white");
   });
 
   dropzone.addEventListener("dragleave", () => {
-    dropzone.classList.remove("border-teal-700", "bg-indigo-50");
+    dropzone.classList.remove("border-primary");
+    dropzone.classList.remove("bg-white");
+    dropzone.classList.add("bg-light");
   });
 
   dropzone.addEventListener("drop", (e) => {
-    dropzone.classList.remove("border-teal-700", "bg-indigo-50");
+    dropzone.classList.remove("border-primary");
+    dropzone.classList.remove("bg-white");
+    dropzone.classList.add("bg-light");
     clearStatus();
 
     const f = e.dataTransfer?.files?.[0];
     if (!f) return;
 
-    // записываем в input (чтобы было “честно”)
     const dt = new DataTransfer();
     dt.items.add(f);
     fileInput.files = dt.files;
@@ -156,21 +171,32 @@ async function loadModels() {
   if (!sel) return;
 
   sel.innerHTML = `<option value="">Загрузка...</option>`;
+
   try {
     const r = await fetch("/api/models");
+    if (!r.ok) throw new Error("bad response");
+
     const data = await r.json();
+    const models = data.models || [];
 
     sel.innerHTML = "";
-    for (const m of data.models || []) {
+
+    if (models.length === 0) {
+      sel.innerHTML = `<option value="">Список моделей пуст</option>`;
+      setStatus("error", "Backend вернул пустой список моделей (/api/models).");
+      return;
+    }
+
+    for (const m of models) {
       const opt = document.createElement("option");
       opt.value = m.model_id;
       opt.textContent = m.display_name;
       sel.appendChild(opt);
     }
 
-    // По умолчанию: swin_s, иначе первый доступный
-    const hasSwin = Array.from(sel.options).some((o) => o.value === "swin_s");
-    sel.value = hasSwin ? "swin_s" : (sel.options[0]?.value || "");
+    const preferred = "cc_vit_sts_tested";
+    const hasPreferred = Array.from(sel.options).some((o) => o.value === preferred);
+    sel.value = hasPreferred ? preferred : (sel.options[0]?.value || "");
 
   } catch (e) {
     sel.innerHTML = `<option value="">Не удалось загрузить список моделей</option>`;
@@ -181,6 +207,9 @@ async function loadModels() {
 function renderResults(payload) {
   const results = el("results");
   if (!results) return;
+
+  const placeholder = el("resultsPlaceholder");
+  if (placeholder) placeholder.classList.add("d-none");
 
   // 1) Метрики
   const metricsTbody = el("metricsTbody");
@@ -193,16 +222,16 @@ function renderResults(payload) {
 
     const rows = [
       ["1", "Время на прогноз", elapsedSec],
-      ["2", "Точность прогнозирования", conf],
+      ["2", "Уверенность", conf],
       ["3", "Предсказанный класс", pred],
     ];
 
     for (const [n, k, v] of rows) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${n}</td>
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${k}</td>
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${v}</td>
+        <td class="text-center">${n}</td>
+        <td class="text-center">${k}</td>
+        <td class="text-center">${v}</td>
       `;
       metricsTbody.appendChild(tr);
     }
@@ -216,18 +245,17 @@ function renderResults(payload) {
     const probs = payload.probabilities || {};
     const keys = Object.keys(probs);
 
-    const ordered =
-      FIXED_CLASS_ORDER.filter((k) => k in probs).concat(
-        keys.filter((k) => !FIXED_CLASS_ORDER.includes(k)).sort()
-      );
+    const ordered = FIXED_CLASS_ORDER.filter((k) => k in probs).concat(
+      keys.filter((k) => !FIXED_CLASS_ORDER.includes(k)).sort()
+    );
 
     ordered.forEach((label, idx) => {
       const p = Number(probs[label] || 0) * 100;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${idx}</td>
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${label}</td>
-        <td class="border-2 border-black px-3 py-2 text-[16px] text-center">${p.toFixed(2)}</td>
+        <td class="text-center">${idx}</td>
+        <td class="text-center">${label}</td>
+        <td class="text-center">${p.toFixed(2)}</td>
       `;
       probsTbody.appendChild(tr);
     });
@@ -240,14 +268,14 @@ function renderResults(payload) {
     interp.textContent = CLASS_DESCRIPTIONS[pred] || "Описание для данного класса пока не добавлено.";
   }
 
-  // 4) Картинка (берём из выбранного файла)
+  // 4) Картинка
   const img = el("resultImg");
   if (img) {
     if (selectedUrl) img.src = selectedUrl;
     else img.removeAttribute("src");
   }
 
-  results.classList.remove("hidden");
+  results.classList.remove("d-none");
   results.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -280,7 +308,6 @@ async function runInference() {
 
     setStatus("ok", "Прогноз выполнен успешно.");
     renderResults(data);
-
   } catch (e) {
     setStatus("error", "Сетевая ошибка. Проверьте, что backend запущен и доступен.");
   } finally {
@@ -288,23 +315,13 @@ async function runInference() {
   }
 }
 
-/**
- * ОБНОВЛЕНО:
- * При "Очистить кэш модели" теперь сбрасываем:
- * - выбранный файл (строку с именем файла + крестик)
- * - fileInput.value
- * - selectedFile/selectedUrl
- * - результаты прогноза
- */
 async function clearCache() {
   const clearBtn = el("clearCacheBtn");
   const fileInput = el("fileInput");
 
-  // 1) Сразу сбрасываем загруженное фото в UI (красный квадрат на скрине)
   if (fileInput) fileInput.value = "";
-  setFile(null); // прячет fileRow, делает runBtn disabled, revoke URL, скрывает результаты
+  setFile(null);
 
-  // 2) Идём чистить кэш на backend
   clearStatus();
   setStatus("info", "Очищаем кэш модели...");
 
@@ -331,6 +348,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const year = el("year");
   if (year) year.textContent = new Date().getFullYear();
 
+  // если это не страница прогноза — тихо выходим
+  if (!el("modelSelect") || !el("fileInput") || !el("runBtn")) return;
+
   setupUploader();
   await loadModels();
 
@@ -342,4 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const clearCacheBtn = el("clearCacheBtn");
   if (clearCacheBtn) clearCacheBtn.addEventListener("click", clearCache);
+
+  // старт: нет файла — прячем результаты
+  clearResultsUI();
 });

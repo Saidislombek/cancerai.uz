@@ -1,0 +1,248 @@
+/* =========================================================
+   cc_desiase — Prediction Section styles
+   Поддерживает переменные MediNest (accent/default/surface)
+   ========================================================= */
+
+   #cc-predict {
+    padding: 60px 0;
+  }
+  
+  #cc-predict .card {
+    border-radius: 18px;
+    box-shadow: 0 14px 40px color-mix(in srgb, var(--default-color), transparent 88%);
+    overflow: hidden;
+  }
+  
+  #cc-predict .card-body {
+    padding: 22px;
+  }
+  
+  #cc-predict h4 {
+    color: var(--heading-color);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  
+  #cc-predict h6 {
+    color: var(--heading-color);
+    font-weight: 800;
+  }
+  
+  /* ---------- Status (alert) ---------- */
+  #cc-predict #status {
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--default-color), transparent 86%);
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--default-color), transparent 92%);
+  }
+  
+  /* ---------- Form controls ---------- */
+  #cc-predict .form-label {
+    font-weight: 700;
+    color: color-mix(in srgb, var(--default-color), transparent 12%);
+  }
+  
+  #cc-predict .form-select,
+  #cc-predict .form-control {
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--default-color), transparent 84%);
+    background: var(--surface-color);
+    padding: 10px 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  #cc-predict .form-select:focus,
+  #cc-predict .form-control:focus {
+    border-color: color-mix(in srgb, var(--accent-color), transparent 10%);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color), transparent 88%);
+  }
+  
+  /* ---------- Dropzone ---------- */
+  #cc-predict #dropzone {
+    border: 2px dashed color-mix(in srgb, var(--default-color), transparent 70%) !important;
+    background: color-mix(in srgb, var(--accent-color), transparent 96%) !important;
+    border-radius: 18px !important;
+    padding: 18px !important;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+  
+  #cc-predict #dropzone:hover {
+    border-color: color-mix(in srgb, var(--accent-color), transparent 18%) !important;
+    background: color-mix(in srgb, var(--accent-color), transparent 94%) !important;
+    transform: translateY(-1px);
+  }
+  
+  #cc-predict #dropzone i {
+    color: var(--accent-color);
+    font-size: 100px;
+  }
+  
+  #cc-predict #dropzone .fw-semibold {
+    color: var(--heading-color);
+  }
+  
+  #cc-predict #dropzone .text-muted {
+    color: color-mix(in srgb, var(--default-color), transparent 35%) !important;
+  }
+  
+  /* File row */
+  #cc-predict #fileRow .border {
+    border-color: color-mix(in srgb, var(--default-color), transparent 86%) !important;
+    border-radius: 14px !important;
+    background: var(--surface-color);
+  }
+  
+  /* ---------- Buttons (site-like) ---------- */
+  #cc-predict .btn {
+    border-radius: 14px;
+    font-weight: 800;
+    padding: 10px 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease,
+      border-color 0.2s ease, color 0.2s ease;
+  }
+  
+  #cc-predict .btn:hover {
+    transform: translateY(-1px);
+  }
+  
+  /* Primary */
+  #cc-predict .btn.btn-primary {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 14px 34px color-mix(in srgb, var(--accent-color), transparent 72%);
+  }
+  
+  #cc-predict .btn.btn-primary:hover {
+    background: color-mix(in srgb, var(--accent-color), black 12%);
+    border-color: color-mix(in srgb, var(--accent-color), black 12%);
+    box-shadow: 0 18px 44px color-mix(in srgb, var(--accent-color), transparent 66%);
+  }
+  
+  /* Success (Прогноз) */
+  #cc-predict .btn.btn-success {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent-color), #22c55e 35%),
+      color-mix(in srgb, var(--accent-color), black 12%)
+    );
+    border-color: transparent;
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--accent-color), transparent 72%);
+  }
+  
+  #cc-predict .btn.btn-success:hover {
+    box-shadow: 0 20px 52px color-mix(in srgb, var(--accent-color), transparent 64%);
+  }
+  
+  #cc-predict .btn:disabled {
+    opacity: 0.65;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  
+  /* Outline buttons */
+  #cc-predict .btn.btn-outline-secondary,
+  #cc-predict .btn.btn-outline-danger {
+    background: transparent;
+  }
+  
+  #cc-predict .btn.btn-outline-secondary:hover {
+    background: color-mix(in srgb, var(--default-color), transparent 92%);
+    border-color: color-mix(in srgb, var(--default-color), transparent 70%);
+  }
+  
+  #cc-predict .btn.btn-outline-danger:hover {
+    background: color-mix(in srgb, #dc3545, transparent 92%);
+    border-color: color-mix(in srgb, #dc3545, transparent 50%);
+  }
+  
+  /* ---------- Result block ---------- */
+  #cc-predict #resultsPlaceholder {
+    padding: 14px 0 0;
+    color: color-mix(in srgb, var(--default-color), transparent 35%) !important;
+  }
+  
+  /* ВАЖНО: увеличили высоту под вертикальный layout */
+  #cc-predict #resultImg {
+    width: 100%;
+    max-height: 520px;
+    object-fit: contain;
+    background: color-mix(in srgb, var(--default-color), transparent 96%);
+  }
+  
+  /* ---------- Tables ---------- */
+  #cc-predict .table {
+    border-radius: 14px;
+    /* overflow: hidden; */
+    border: 3px solid color-mix(in srgb, var(--default-color), transparent 88%);
+  }
+  
+  #cc-predict .table thead th {
+    background: color-mix(in srgb, var(--accent-color), transparent 92%) !important;
+    color: var(--heading-color);
+    font-weight: 900;
+  }
+  
+  #cc-predict .table td,
+  #cc-predict .table th {
+    border-radius: 14px;
+    border: 3px solid color-mix(in srgb, var(--default-color), transparent 88%);
+    border-color: color-mix(in srgb, var(--default-color), transparent 90%) !important;
+  }
+  
+  /* ---------- Responsive tweaks ---------- */
+  @media (max-width: 768px) {
+    #cc-predict {
+      padding: 45px 0;
+    }
+  
+    #cc-predict .card-body {
+      padding: 18px;
+    }
+  
+    #cc-predict #dropzone {
+      padding: 14px !important;
+    }
+  
+    #cc-predict #resultImg {
+      max-height: 420px;
+    }
+  }
+  
+  /* =========================================================
+     CUSTOM CARET for <select id="modelSelect">
+     Делается чисто CSS (градиенты), без SVG и без HTML-иконок
+     ========================================================= */
+  
+  #cc-predict #modelSelect.form-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  
+    padding-right: 44px;
+  
+    background-image:
+      linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--default-color), transparent 20%) 50%),
+      linear-gradient(135deg, color-mix(in srgb, var(--default-color), transparent 20%) 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 12px) 50%;
+    background-size: 7px 7px, 7px 7px;
+    background-repeat: no-repeat;
+  }
+  
+  #cc-predict #modelSelect.form-select:hover {
+    background-image:
+      linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--default-color), transparent 10%) 50%),
+      linear-gradient(135deg, color-mix(in srgb, var(--default-color), transparent 10%) 50%, transparent 50%);
+  }
+  
+  #cc-predict #modelSelect.form-select:focus {
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--accent-color) 50%),
+      linear-gradient(135deg, var(--accent-color) 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 12px) 50%;
+    background-size: 7px 7px, 7px 7px;
+    background-repeat: no-repeat;
+  }  

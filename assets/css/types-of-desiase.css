@@ -1,0 +1,417 @@
+/*--------------------------------------------------------------
+# Services Section
+--------------------------------------------------------------*/
+.services .services-grid {
+  margin-bottom: 60px;
+}
+
+.services .service-card {
+  background: var(--surface-color);
+  border-radius: 25px;
+  padding: 0;
+  height: 100%;
+  transition: all 0.4s ease;
+  border: 3px solid #000000;
+  position: relative;
+  overflow: hidden;
+}
+
+.services .service-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-color), transparent 98%),
+    color-mix(in srgb, var(--accent-color), transparent 95%)
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+}
+
+.services .service-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--accent-color);
+  box-shadow: 0 20px 60px color-mix(in srgb, var(--default-color), transparent 85%);
+}
+
+.services .service-card:hover::before {
+  opacity: 1;
+}
+
+.services .service-card:hover .service-icon i {
+  transform: scale(1.2) rotate(10deg);
+}
+
+.services .service-card:hover .service-btn {
+  background: var(--accent-color);
+  color: var(--contrast-color);
+}
+
+.services .service-card:hover .service-btn i {
+  transform: translateX(5px);
+}
+
+.services .service-card.featured {
+  border-color: var(--accent-color);
+  box-shadow: 0 10px 40px color-mix(in srgb, var(--accent-color), transparent 80%);
+}
+
+.services .service-card.featured .featured-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--accent-color);
+  color: var(--contrast-color);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 2;
+}
+
+.services .service-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.services .service-header {
+  padding: 30px 30px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  position: relative;
+}
+
+.services .service-header .service-category {
+  background: color-mix(in srgb, var(--accent-color), transparent 90%);
+  color: var(--accent-color);
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.services .service-header .status-indicator {
+  background: #28a745;
+  color: var(--contrast-color);
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.services .service-icon {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    color-mix(in srgb, var(--accent-color), #007acc 50%)
+  );
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.services .service-icon i {
+  font-size: 28px;
+  color: var(--contrast-color);
+  transition: all 0.3s ease;
+}
+
+.services .service-body {
+  padding: 0 30px 20px;
+}
+
+.services .service-body h4 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--heading-color);
+  margin-bottom: 15px;
+  line-height: 1.3;
+}
+
+.services .service-body p {
+  color: color-mix(in srgb, var(--default-color), transparent 25%);
+  margin-bottom: 25px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.services .service-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.services .service-features .feature-badge {
+  background: color-mix(in srgb, var(--default-color), transparent 95%);
+  color: color-mix(in srgb, var(--default-color), transparent 20%);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.services .service-footer {
+  padding: 0 30px 30px;
+  margin-top: auto;
+}
+
+.services .service-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 25px;
+  background: transparent;
+  border: 2px solid #000000;
+  border-radius: 25px;
+  color: #000000;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.services .service-btn i {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.services .service-btn.emergency-btn {
+  background: #dc3545;
+  color: var(--contrast-color);
+  border-color: #dc3545;
+}
+
+.services .service-btn.emergency-btn:hover {
+  background: color-mix(in srgb, #dc3545, #000000 20%);
+  border-color: color-mix(in srgb, #dc3545, #000000 20%);
+}
+
+.services .services-stats {
+  background: var(--surface-color);
+  border-radius: 20px;
+  padding: 50px 0;
+  margin-bottom: 50px;
+  box-shadow: 0 5px 30px color-mix(in srgb, var(--default-color), transparent 92%);
+}
+
+.services .services-stats .stat-item {
+  text-align: center;
+  padding: 0 20px;
+}
+
+.services .services-stats .stat-item .stat-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--accent-color);
+  display: block;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.services .services-stats .stat-item .stat-label {
+  color: color-mix(in srgb, var(--default-color), transparent 30%);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.services .appointment-banner {
+  background: linear-gradient(
+    135deg,
+    var(--accent-color),
+    color-mix(in srgb, var(--accent-color), #007acc 30%)
+  );
+  border-radius: 25px;
+  overflow: hidden;
+  position: relative;
+}
+
+.services .appointment-banner::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: color-mix(in srgb, var(--contrast-color), transparent 95%);
+  border-radius: 50%;
+}
+
+.services .appointment-banner::after {
+  content: "";
+  position: absolute;
+  bottom: -40%;
+  left: -15%;
+  width: 200px;
+  height: 200px;
+  background: color-mix(in srgb, var(--contrast-color), transparent 97%);
+  border-radius: 50%;
+}
+
+.services .appointment-banner .banner-content {
+  padding: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 992px) {
+  .services .appointment-banner .banner-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+}
+
+.services .appointment-banner .banner-text h3 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--contrast-color);
+  margin-bottom: 15px;
+}
+
+.services .appointment-banner .banner-text p {
+  color: color-mix(in srgb, var(--contrast-color), transparent 20%);
+  font-size: 16px;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.services .appointment-banner .banner-actions {
+  display: flex;
+  gap: 15px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+  .services .appointment-banner .banner-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+.services .appointment-banner .banner-actions .btn-primary {
+  background: var(--contrast-color);
+  color: var(--accent-color);
+  padding: 15px 30px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid var(--contrast-color);
+}
+
+.services .appointment-banner .banner-actions .btn-primary:hover {
+  background: transparent;
+  color: var(--contrast-color);
+  transform: translateY(-2px);
+}
+
+.services .appointment-banner .banner-actions .btn-secondary {
+  background: transparent;
+  color: var(--contrast-color);
+  padding: 15px 30px;
+  border: 2px solid color-mix(in srgb, var(--contrast-color), transparent 30%);
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.services .appointment-banner .banner-actions .btn-secondary:hover {
+  background: color-mix(in srgb, var(--contrast-color), transparent 90%);
+  border-color: var(--contrast-color);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .services .service-card {
+    margin-bottom: 20px;
+  }
+
+  .services .service-header {
+    padding: 25px 25px 15px;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .services .service-header .service-category {
+    order: 2;
+  }
+
+  .services .service-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .services .service-icon i {
+    font-size: 24px;
+  }
+
+  .services .service-body {
+    padding: 0 25px 15px;
+    text-align: center;
+  }
+
+  .services .service-body h4 {
+    font-size: 20px;
+  }
+
+  .services .service-footer {
+    padding: 0 25px 25px;
+  }
+
+  .services .services-stats {
+    padding: 40px 20px;
+  }
+
+  .services .services-stats .stat-item {
+    margin-bottom: 30px;
+  }
+
+  .services .services-stats .stat-item .stat-number {
+    font-size: 36px;
+  }
+
+  .services .appointment-banner .banner-content {
+    padding: 40px 25px;
+  }
+
+  .services .appointment-banner .banner-text h3 {
+    font-size: 26px;
+  }
+}

@@ -9,10 +9,10 @@ from typing import Dict, List, Optional, Tuple
 import h5py
 import numpy as np
 
-# Для Keras-моделей (если когда-то будут .keras / полноценные .h5 Keras)
+# Keras-модели (если будут .keras / полноценные .h5 Keras)
 import tensorflow as tf
 
-# Для вашего формата .h5 (timm + torch state_dict)
+# Ваш формат .h5 (timm + torch state_dict)
 import torch
 import timm
 from timm.data import resolve_data_config
@@ -20,9 +20,9 @@ from timm.data import resolve_data_config
 
 @dataclass(frozen=True)
 class ModelSpec:
-    model_id: str
-    display_name: str
-    filename: str  # имя файла внутри MODEL_DIR
+    model_id: str          # значение, которое пойдёт в запрос (value в <option>)
+    display_name: str      # то, что увидите в dropdown на фронтенде
+    filename: str          # имя файла в папке MODEL_DIR (/data/models)
 
 
 @dataclass
@@ -36,9 +36,33 @@ class LoadedModel:
     device: Optional[str] = None
 
 
-# Оставляем одну модель под ваш текущий файл
+# 5 моделей, как вы хотите видеть на фронтенде
 DEFAULT_MODELS: List[ModelSpec] = [
-    ModelSpec("cc_vit_sts", "CC-ViT-STS (tested)", "cc_vit_sts_tested.h5"),
+    ModelSpec(
+        model_id="cc_mswt_tested",
+        display_name="Multi-scale Window Transformer MSWT",
+        filename="cc_mswt_tested.h5",
+    ),
+    ModelSpec(
+        model_id="cc_env2_s_tested",
+        display_name="EfficientNetV2-S (EfficientNetV2 Small)",
+        filename="cc_env2_s_tested.h5",
+    ),
+    ModelSpec(
+        model_id="cc_rf_tested",
+        display_name="Random Forest",
+        filename="cc_rf_tested.h5",
+    ),
+    ModelSpec(
+        model_id="cc_ifs_tested",
+        display_name="IFS-kNN",
+        filename="cc_ifs_tested.h5",
+    ),
+    ModelSpec(
+        model_id="cc_vit_sts_tested",
+        display_name="ViT Vision Transformer (Swin Transformer Small)",
+        filename="cc_vit_sts_tested.h5",
+    ),
 ]
 
 
@@ -54,7 +78,7 @@ class ModelRegistry:
         self._models: Dict[str, LoadedModel] = {}
         self._specs: List[ModelSpec] = DEFAULT_MODELS
 
-        # 1) Если задан MODEL_DIR — используем его
+        # 1) Если задан MODEL_DIR — используем его (Railway: /data/models)
         env_dir = os.getenv("MODEL_DIR", "").strip()
         if env_dir:
             self._model_dir = Path(env_dir).resolve()
@@ -82,8 +106,8 @@ class ModelRegistry:
             self._models.clear()
 
     def _detect_kind(self, path: Path) -> str:
-        # Keras H5 обычно содержит model_config / keras_version в attrs
         with h5py.File(path, "r") as f:
+            # Keras H5 обычно содержит model_config / keras_version в attrs
             if ("model_config" in f.attrs) or ("keras_version" in f.attrs):
                 return "keras"
             # Ваш формат из Colab: группы info + model_state_dict
@@ -105,7 +129,6 @@ class ModelRegistry:
                 raise ValueError("No classes found in info.attrs['classes']")
 
             num_classes = len(labels)
-
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
             model = timm.create_model(
@@ -121,11 +144,9 @@ class ModelRegistry:
                 arr = np.array(g[name])
                 state_dict[name] = torch.from_numpy(arr)
 
-            # В вашем Colab было strict=True, оставляем так же
             model.load_state_dict(state_dict, strict=True)
             model.eval()
 
-        # конфиг препроцессинга
         data_cfg = resolve_data_config({}, model=model)
         input_size = data_cfg.get("input_size", (3, 224, 224))  # (C,H,W)
         mean = tuple(float(x) for x in data_cfg.get("mean", (0.485, 0.456, 0.406)))
@@ -149,7 +170,6 @@ class ModelRegistry:
         classes_env = os.getenv("CLASSES", "").strip()
         labels = [x.strip() for x in classes_env.split(",") if x.strip()] if classes_env else []
 
-        # input size
         try:
             ish = model.input_shape  # (None,H,W,C)
             h, w = int(ish[1]), int(ish[2])

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>CancerAI — Раннее прогнозирование рака</title>
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicons/favicon-16x16.png">
+  <link rel="manifest" href="../assets/favicons/site.webmanifest">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="../assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  
+  <!-- header CSS File -->
+  <link href="../assets/css/header.css" rel="stylesheet">
+  <!-- Main CSS File -->
+  <link href="../assets/css/index.css" rel="stylesheet">
+  <!-- Footer CSS File -->
+  <link href="../assets/css/footer.css" rel="stylesheet">
+
+  <!-- =======================================================
+  * Template Name: MediNest
+  * Template URL: https://bootstrapmade.com/medinest-bootstrap-hospital-template/
+  * Updated: Aug 11 2025 with Bootstrap v5.3.7
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body class="index-page">
+
+  <header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container position-relative d-flex align-items-center justify-content-between">
+
+      <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
+        <!-- Uncomment the line below if you also wish to use an image logo -->
+        <!-- <img src="assets/img/logo.webp" alt=""> -->
+        <h1 class="sitename">Cancer<span>Ai</span>Uz</h1>
+      </a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="index.html" class="active">Главная</a></li>
+          <li><a href="about.html">О проекте</a></li>
+          <li><a href="types-of-desiase.html">Виды рака</a></li>  
+          <li><a href="contact.html">Контакты</a></li>
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+  
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero section">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-lg-5">
+            <div class="hero-image" data-aos="fade-right" data-aos-delay="100">
+              <img src="../assets/img/health/staff-8.webp" alt="Healthcare Professional" class="img-fluid main-image">
+              <div class="floating-card emergency-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="card-content">
+                  <i class="bi bi-telephone-fill"></i>
+                  <div class="text">
+                    <span class="label">24/7 Emergency</span>
+                    <span class="number">+1 (555) 911-2468</span>
+                  </div>
+                </div>
+              </div>
+              <div class="floating-card stats-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="stat-item">
+                  <span class="number">25K+</span>
+                  <span class="label">Patients Treated</span>
+                </div>
+                <div class="stat-item">
+                  <span class="number">98%</span>
+                  <span class="label">Satisfaction Rate</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="hero-content" data-aos="fade-left" data-aos-delay="200">
+              <div class="badge-container">
+                <span class="hero-badge">Trusted Healthcare Provider</span>
+              </div>
+
+              <h1 class="hero-title">Excellence in Medical Care Since 1985</h1>
+              <p class="hero-description">Mauris blandit aliquet elit, eget tincidunt nibh pulvinar a. Pellentesque in ipsum id orci porta dapibus. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus.</p>
+
+              <div class="hero-stats">
+                <div class="stat-group">
+                  <div class="stat">
+                    <i class="bi bi-award"></i>
+                    <div class="stat-text">
+                      <span class="number">35+</span>
+                      <span class="label">Years Experience</span>
+                    </div>
+                  </div>
+                  <div class="stat">
+                    <i class="bi bi-people"></i>
+                    <div class="stat-text">
+                      <span class="number">150+</span>
+                      <span class="label">Medical Specialists</span>
+                    </div>
+                  </div>
+                  <div class="stat">
+                    <i class="bi bi-geo-alt"></i>
+                    <div class="stat-text">
+                      <span class="number">12</span>
+                      <span class="label">Clinic Locations</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cta-section">
+                <div class="cta-buttons">
+                  <a href="#" class="btn btn-primary">Schedule Consultation</a>
+                  <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="btn btn-secondary glightbox">
+                    <i class="bi bi-play-circle"></i>
+                    Watch Our Story
+                  </a>
+                </div>
+
+                <div class="quick-actions">
+                  <a href="#" class="action-link">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>Find Available Times</span>
+                  </a>
+                  <a href="#" class="action-link">
+                    <i class="bi bi-chat-dots"></i>
+                    <span>Chat with Support</span>
+                  </a>
+                  <a href="#" class="action-link">
+                    <i class="bi bi-file-medical"></i>
+                    <span>Patient Portal</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="background-elements">
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+        <div class="bg-pattern"></div>
+      </div>
+    </section><!-- /Hero Section -->
+
+    <!-- Home About Section -->
+    <section id="home-about" class="home-about section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center mb-5" data-aos="fade-up" data-aos-delay="150">
+            <h2 class="section-heading">Excellence in Healthcare Since 1985</h2>
+            <p class="lead-description">We are committed to providing world-class medical care through innovation, compassion, and unwavering dedication to our patients' wellbeing and recovery.</p>
+          </div>
+        </div>
+
+        <div class="row align-items-center gy-5">
+          <div class="col-lg-7" data-aos="fade-right" data-aos-delay="200">
+            <div class="image-grid">
+              <div class="primary-image">
+                <img src="../assets/img/health/facilities-6.webp" alt="Modern hospital facility" class="img-fluid">
+                <div class="certification-badge">
+                  <i class="bi bi-award"></i>
+                  <span>JCI Accredited</span>
+                </div>
+              </div>
+              <div class="secondary-images">
+                <div class="small-image">
+                  <img src="../assets/img/health/consultation-3.webp" alt="Doctor consultation" class="img-fluid">
+                </div>
+                <div class="small-image">
+                  <img src="../assets/img/health/surgery-2.webp" alt="Medical procedure" class="img-fluid">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-5" data-aos="fade-left" data-aos-delay="300">
+            <div class="content-wrapper">
+              <div class="highlight-box">
+                <div class="highlight-icon">
+                  <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <div class="highlight-content">
+                  <h4>Patient-Centered Approach</h4>
+                  <p>Every treatment plan is carefully customized to meet individual patient needs and medical history.</p>
+                </div>
+              </div>
+
+              <div class="feature-list">
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <div class="feature-text">Advanced diagnostic technology and imaging</div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <div class="feature-text">Board-certified physicians and specialists</div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <div class="feature-text">Comprehensive rehabilitation programs</div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <div class="feature-text">24/7 emergency and critical care services</div>
+                </div>
+              </div>
+
+              <div class="metrics-row">
+                <div class="metric-box">
+                  <div class="metric-number">
+                    <span class="purecounter" data-purecounter-start="0" data-purecounter-end="98" data-purecounter-duration="0">98</span>%
+                  </div>
+                  <div class="metric-label">Patient Satisfaction</div>
+                </div>
+                <div class="metric-box">
+                  <div class="metric-number">
+                    <span class="purecounter" data-purecounter-start="0" data-purecounter-end="35" data-purecounter-duration="0">35</span>K+
+                  </div>
+                  <div class="metric-label">Lives Improved</div>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <a href="about.html" class="btn-explore">Explore Our Services</a>
+                <a href="contact.html" class="btn-contact">
+                  <i class="bi bi-telephone"></i>
+                  Schedule Consultation
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section><!-- /Home About Section -->
+
+
+
+
+    <!-- Call To Action Section -->
+    <section id="call-to-action" class="call-to-action section light-background">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="hero-content" data-aos="fade-up" data-aos-delay="200">
+          <div class="row align-items-center">
+            <div class="col-lg-6">
+              <div class="content-wrapper">
+                <h2>Exceptional Care for Your Health Journey</h2>
+                <p>Discover comprehensive healthcare services delivered with compassion and expertise. Our dedicated team is committed to providing personalized medical care that puts you first.</p>
+
+                <div class="action-buttons">
+                  <a href="appointment.html" class="primary-btn">Schedule Consultation</a>
+                  <a href="services.html" class="secondary-link">
+                    <span>Explore Services</span>
+                    <i class="fas fa-arrow-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-6">
+              <div class="hero-image" data-aos="zoom-in" data-aos-delay="300">
+                <img src="../assets/img/health/showcase-2.webp" alt="Healthcare Excellence" class="img-fluid">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-section" data-aos="fade-up" data-aos-delay="400">
+          <div class="row">
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-item">
+                <div class="stat-number">25+</div>
+                <div class="stat-label">Years Experience</div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-item">
+                <div class="stat-number">15K+</div>
+                <div class="stat-label">Happy Patients</div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-item">
+                <div class="stat-number">50+</div>
+                <div class="stat-label">Medical Experts</div>
+              </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+              <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Emergency Care</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="appointment-banner" data-aos="fade-up" data-aos-delay="900">
+          <div class="banner-content">
+            <div class="banner-text">
+              <h3>Need Medical Attention?</h3>
+              <p>Book your appointment with our qualified healthcare professionals and get the care you deserve.</p>
+            </div>
+            <div class="banner-actions">
+              <a href="appointment.html" class="btn-primary">Book Appointment</a>
+              <a href="tel:+15551234567" class="btn-secondary">
+                <i class="fas fa-phone"></i>
+                Call Now
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section><!-- /Call To Action Section -->
+
+  </main>
+
+  <footer id="footer" class="footer position-relative">
+
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-4 col-md-6 footer-about">
+          <a href="index.html" class="logo d-flex align-items-center">
+            <span class="sitename">CancerAiUz</span>
+          </a>
+          <div class="footer-contact pt-3">
+            <p>108, пр. Амира Темура</p>
+            <p>Ташкент, 100084</p>
+            <p class="mt-3"><strong>Контактный номер:</strong> <span>+99897 729-89-97</span></p>
+            <p><strong>Почтовый адрес:</strong> <span>oliver-smith-97@mail.ru</span></p>
+          </div>
+          <div class="social-links d-flex mt-4">
+            <a href=""><i class="bi bi-twitter-x"></i></a>
+            <a href=""><i class="bi bi-facebook"></i></a>
+            <a href=""><i class="bi bi-instagram"></i></a>
+            <a href=""><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-3 footer-links">
+          <h4>Навигация</h4>
+          <ul>
+            <li><a href="index.html">Главная</a></li>
+            <li><a href="about.html">О проекте</a></li>
+            <li><a href="types-of-desiase.html">Виды рака</a></li>
+            <li><a href="contact.html">Контакты</a></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+      <p>© 2026 <span>Авторские права</span> <strong>CancerAiUz.</strong>&nbsp;<span>Все права защищены</span></p>
+      <div class="credits">
+        <!-- All the links in the footer should remain intact. -->
+        <!-- You can delete the links only if you've purchased the pro version. -->
+        <!-- Licensing information: https://bootstrapmade.com/license/ -->
+        <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
+        Автор <a href="https://t.me/saidislombek15/" target="_blank">Абдуллахужаев С.Н.</a>
+      </div>
+    </div>
+
+  </footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/php-email-form/validate.js"></script>
+  <script src="../assets/vendor/aos/aos.js"></script>
+  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="../assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+  <script src="../assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+  <!-- Main JS File -->
+  <script src="../assets/js/main.js"></script>
+
+</body>
+</html>
