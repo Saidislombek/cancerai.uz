@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uz">
 
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>CancerAI — Раннее прогнозирование</title>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
+  <title>CancerAI — Sitologiya bo‘yicha prognoz</title>
+  <meta name="description" content="Sitologik (Pap-test) tasvirni yuklang, modelni tanlang va HSIL, LSIL, NILM, SCC sinflari bo‘yicha ehtimollik natijasini oling.">
+  <meta name="keywords" content="CancerAI, sitologiya, Pap-test, bachadon bo‘yni saratoni, prognoz, HSIL, LSIL, NILM, SCC, sun’iy intellekt">
 
   <!-- Favicons -->
   <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicons/apple-touch-icon.png">
@@ -48,10 +48,10 @@
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="index.html">Главная</a></li>
-          <li><a href="about.html">О проекте</a></li>
-          <li><a href="types-of-desiase.html">Виды рака</a></li>
-          <li><a href="contact.html">Контакты</a></li>
+          <li><a href="index.html">Bosh sahifa</a></li>
+          <li><a href="about.html">Loyiha haqida</a></li>
+          <li><a href="types-of-desiase.html">Saraton turlari</a></li>
+          <li><a href="contact.html">Aloqa</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -67,9 +67,10 @@
         <div class="container">
           <div class="row d-flex justify-content-center text-center">
             <div class="col-lg-8">
-              <h1 class="heading-title">Прогнозирование рака по цитологии</h1>
+              <h1 class="heading-title">Sitologiya bo‘yicha saraton prognozi</h1>
               <p class="mb-0">
-                Загрузите изображение, выберите модель и получите прогноз по классам: HSIL, LSIL, NILM, SCC.
+                Tasvirni yuklang, modelni tanlang va HSIL, LSIL, NILM, SCC sinflari bo‘yicha ehtimollik natijasini oling.
+                Eslatma: bu yakuniy tashxis emas — shifokor ko‘rigi majburiy.
               </p>
             </div>
           </div>
@@ -79,8 +80,8 @@
       <nav class="breadcrumbs">
         <div class="container">
           <ol>
-            <li><a href="index.html">Главная</a></li>
-            <li class="current">Прогноз</li>
+            <li><a href="index.html">Bosh sahifa</a></li>
+            <li class="current">Prognoz</li>
           </ol>
         </div>
       </nav>
@@ -99,38 +100,38 @@
             <div class="card shadow-sm mb-4">
               <div class="card-body">
 
-                <h2 class="mb-5 text-center">Входные данные</h2>
+                <h2 class="mb-5 text-center">Kirish ma’lumotlari</h2>
 
                 <!-- Status -->
                 <div id="status" class="alert d-none mb-3" role="alert"></div>
 
                 <!-- Model select -->
                 <div class="mb-3">
-                  <label class="form-label">Выберите алгоритм (модель)</label>
+                  <label class="form-label">Algoritm (model)ni tanlang</label>
                   <select id="modelSelect" class="form-select">
-                    <option value="">Загрузка...</option>
+                    <option value="">Yuklanmoqda...</option>
                   </select>
                 </div>
 
                 <!-- Upload -->
                 <div class="mb-3">
-                  <label class="form-label">Загрузите изображение</label>
+                  <label class="form-label">Tasvirni yuklang</label>
 
                   <div id="dropzone" class="border rounded-3 p-3 text-center bg-light">
                     <div>
                       <i class="bi bi-cloud-arrow-up"></i>
                     </div>
-                    <div class="fw-semibold">Перетащите файл сюда</div>
-                    <div class="text-muted small mb-3">или выберите файл вручную</div>
+                    <div class="fw-semibold">Faylni shu yerga sudrab tashlang</div>
+                    <div class="text-muted small mb-3">yoki qo‘lda tanlang</div>
 
                     <input id="fileInput" type="file" accept="image/*" class="d-none" />
 
                     <div class="d-flex gap-2 justify-content-center">
                       <button id="browseBtn" type="button" class="btn btn-primary">
-                        Выбрать файл
+                        Faylni tanlash
                       </button>
                       <button id="clearFileBtn" type="button" class="btn btn-outline-secondary">
-                        Очистить
+                        Tozalash
                       </button>
                     </div>
                   </div>
@@ -152,11 +153,11 @@
                 <!-- Actions -->
                 <div class="d-grid gap-2 mb-5">
                   <button id="runBtn" type="button" class="btn btn-success mb-3" disabled>
-                    <i class="bi bi-play-fill me-1"></i> Прогноз
+                    <i class="bi bi-play-fill me-1"></i> Prognoz
                   </button>
 
                   <button id="clearCacheBtn" type="button" class="btn btn-outline-danger mb-3">
-                    <i class="bi bi-trash me-1"></i> Очистить кэш модели
+                    <i class="bi bi-trash me-1"></i> Model keshini tozalash
                   </button>
                 </div>
 
@@ -167,7 +168,7 @@
             <div class="card shadow-sm">
               <div class="card-body">
 
-                <h2 class="mb-3 text-center">Результат</h2>
+                <h2 class="mb-3 text-center">Natija</h2>
 
                 <div id="results" class="d-none">
                   <div class="row g-4">
@@ -175,14 +176,14 @@
                     <!-- 1) TABLES -->
                     <div class="col-12">
                       <div class="mb-3">
-                        <h4 class="mb-2">Метрики</h4>
+                        <h4 class="mb-2">Metrikalar</h4>
                         <div class="table-responsive">
                           <table class="table table-bordered align-middle mb-0">
                             <thead class="table-light">
                               <tr>
                                 <th style="width: 60px" class="text-center">#</th>
-                                <th class="text-center">Параметр</th>
-                                <th class="text-center">Значение</th>
+                                <th class="text-center">Parametr</th>
+                                <th class="text-center">Qiymat</th>
                               </tr>
                             </thead>
                             <tbody id="metricsTbody"></tbody>
@@ -191,13 +192,13 @@
                       </div>
 
                       <div class="mb-3">
-                        <h4 class="mb-2">Вероятности по классам</h4>
+                        <h4 class="mb-2">Sinflar bo‘yicha ehtimollik</h4>
                         <div class="table-responsive">
                           <table class="table table-bordered align-middle mb-0">
                             <thead class="table-light">
                               <tr>
                                 <th style="width: 60px" class="text-center">#</th>
-                                <th class="text-center">Класс</th>
+                                <th class="text-center">Sinf</th>
                                 <th class="text-center">%</th>
                               </tr>
                             </thead>
@@ -209,15 +210,15 @@
 
                     <!-- 2) INTERPRETATION -->
                     <div class="col-12">
-                      <h4 class="mb-2">Интерпретация результата</h4>
+                      <h4 class="mb-2">Natija interpretatsiyasi</h4>
                       <p id="interpretation" class="mb-0"></p>
                     </div>
 
                     <!-- 3) IMAGE -->
                     <div class="col-12">
                       <div class="border rounded-3 p-2 bg-white">
-                        <h4 class="mb-2">Загруженное изображение</h4>
-                        <img id="resultImg" class="img-fluid rounded-2" alt="Загруженное изображение">
+                        <h4 class="mb-2">Yuklangan tasvir</h4>
+                        <img id="resultImg" class="img-fluid rounded-2" alt="Yuklangan tasvir">
                       </div>
                     </div>
 
@@ -225,7 +226,7 @@
                 </div>
 
                 <div id="resultsPlaceholder" class="text-muted">
-                  Пока нет результата. Загрузите изображение и нажмите «Прогноз».
+                  Hozircha natija yo‘q. Tasvirni yuklang va «Prognoz» tugmasini bosing.
                 </div>
 
               </div>
@@ -250,10 +251,10 @@
             <span class="sitename">CancerAiUz</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>108, пр. Амира Темура</p>
-            <p>Ташкент, 100084</p>
-            <p class="mt-3"><strong>Контактный номер:</strong> <span>+99897 729-89-97</span></p>
-            <p><strong>Почтовый адрес:</strong> <span>oliver-smith-97@mail.ru</span></p>
+            <p>Amir Temur shoh ko‘chasi, 108-uy</p>
+            <p>Toshkent, 100084</p>
+            <p class="mt-3"><strong>Aloqa raqami:</strong> <span>+99897 729-89-97</span></p>
+            <p><strong>Elektron pochta:</strong> <span>oliver-smith-97@mail.ru</span></p>
           </div>
           <div class="social-links d-flex mt-4">
             <a href=""><i class="bi bi-twitter-x"></i></a>
@@ -264,12 +265,12 @@
         </div>
 
         <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Навигация</h4>
+          <h4>Navigatsiya</h4>
           <ul>
-            <li><a href="index.html">Главная</a></li>
-            <li><a href="about.html">О проекте</a></li>
-            <li><a href="types-of-desiase.html">Виды рака</a></li>
-            <li><a href="contact.html">Контакты</a></li>
+            <li><a href="index.html">Bosh sahifa</a></li>
+            <li><a href="about.html">Loyiha haqida</a></li>
+            <li><a href="types-of-desiase.html">Saraton turlari</a></li>
+            <li><a href="contact.html">Aloqa</a></li>
           </ul>
         </div>
 
@@ -277,10 +278,9 @@
     </div>
 
     <div class="container copyright text-center mt-4">
-      <p>© <span id="year">2026</span> <span>Авторские права</span> <strong>CancerAiUz.</strong>&nbsp;<span>Все права
-          защищены</span></p>
+      <p>© 2026 <span>Mualliflik huquqlari</span> <strong>CancerAiUz.</strong>&nbsp;<span>Barcha huquqlar himoyalangan.</span></p>
       <div class="credits">
-        Автор <a href="https://t.me/saidislombek15/" target="_blank">Абдуллахужаев С.Н.</a>
+        Muallif <a href="https://t.me/saidislombek15/" target="_blank">Abdullakhujaev S.N.</a>
       </div>
     </div>
 
