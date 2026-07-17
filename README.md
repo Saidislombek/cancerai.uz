@@ -4,42 +4,7 @@ CancerAI — научно-образовательная веб-платформ
 
 > Результаты системы не являются медицинским диагнозом и не заменяют консультацию врача.
 
-## Технологии
-
-- Backend: FastAPI и Uvicorn.
-- Машинное обучение: PyTorch, timm и TensorFlow/Keras.
-- Обработка изображений: Pillow и NumPy.
-- Frontend: HTML, CSS, Bootstrap и JavaScript.
-- Хранение моделей: локальный каталог `models`, переменная `MODEL_DIR` или Railway Volume `/data/models`.
-
-## Структура проекта
-
-```text
-app/
-  main.py             # маршруты сайта и REST API
-  inference.py        # подготовка изображения и прогноз
-  model_registry.py   # регистрация, загрузка и кэширование моделей
-pages/                # HTML-страницы
-assets/               # CSS, JavaScript, изображения и библиотеки
-Dockerfile            # контейнеризация приложения
-requirements.txt      # зависимости Python
 ```
-
-## Запуск локально
-
-```bash
-python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-
-# Linux/macOS
-source .venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
 После запуска откройте `http://127.0.0.1:8000`.
 
 ## Файлы моделей
