@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 PAGES_DIR = BASE_DIR / "pages"
 ASSETS_DIR = BASE_DIR / "assets"
 
-app = FastAPI(title="Cervical Cytology AI", version="1.0.0")
+app = FastAPI(title="ИИ-анализ цитологии шейки матки", version="1.0.0")
 registry = ModelRegistry()
 
 
@@ -31,7 +31,7 @@ def _safe_page_name(page: str) -> bool:
     return all(ch.isalnum() or ch in ("_", "-") for ch in page)
 
 
-def _file_or_404(path: Path, detail: str = "Not found") -> FileResponse:
+def _file_or_404(path: Path, detail: str = "Не найдено") -> FileResponse:
     if not path.exists() or not path.is_file():
         raise HTTPException(status_code=404, detail=detail)
     # Можно добавить cache-control при желании через headers
@@ -46,13 +46,13 @@ app.mount("/assets", StaticFiles(directory=str(ASSETS_DIR)), name="assets")
 
 @app.get("/")
 def index() -> FileResponse:
-    return _file_or_404(PAGES_DIR / "index.html", detail="index.html not found in /pages")
+    return _file_or_404(PAGES_DIR / "index.html", detail="Файл index.html не найден в каталоге /pages")
 
 
 @app.get("/{page}.html")
 def html_page(page: str) -> FileResponse:
     if not _safe_page_name(page):
-        raise HTTPException(status_code=404, detail="Not found")
+        raise HTTPException(status_code=404, detail="Не найдено")
     return _file_or_404(PAGES_DIR / f"{page}.html")
 
 
@@ -82,7 +82,7 @@ def list_models() -> Dict[str, Any]:
 @app.post("/api/admin/clear-cache")
 def clear_cache() -> Dict[str, Any]:
     registry.clear_cache()
-    return {"status": "ok", "message": "Model cache cleared."}
+    return {"status": "ok", "message": "Кэш модели очищен."}
 
 
 @app.post("/api/predict")
@@ -92,14 +92,14 @@ async def predict(
 ) -> JSONResponse:
     # базовая валидация
     if not model_id:
-        raise HTTPException(status_code=422, detail="model_id is required")
+        raise HTTPException(status_code=422, detail="Необходимо указать model_id")
     if file is None:
-        raise HTTPException(status_code=422, detail="file is required")
+        raise HTTPException(status_code=422, detail="Необходимо загрузить файл")
 
     try:
         image_bytes = await file.read()
         if not image_bytes:
-            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+            raise HTTPException(status_code=400, detail="Загруженный файл пуст")
 
         loaded = registry.get(model_id)
         result = run_inference(model_id, loaded, image_bytes)

@@ -1,314 +1,245 @@
 <!DOCTYPE html>
-<html lang="uz">
 
+<html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>CancerAI — Sitologiya bo‘yicha prognoz</title>
-  <meta name="description" content="Sitologik (Pap-test) tasvirni yuklang, modelni tanlang va HSIL, LSIL, NILM, SCC sinflari bo‘yicha ehtimollik natijasini oling.">
-  <meta name="keywords" content="CancerAI, sitologiya, Pap-test, bachadon bo‘yni saratoni, prognoz, HSIL, LSIL, NILM, SCC, sun’iy intellekt">
-
-  <!-- Favicons -->
-  <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicons/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicons/favicon-16x16.png">
-  <link rel="manifest" href="../assets/favicons/site.webmanifest">
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
-    rel="stylesheet">
-
-  <!-- Vendor CSS Files -->
-  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="../assets/vendor/aos/aos.css" rel="stylesheet">
-  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-  <link href="../assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
-  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
-  <!-- header CSS File -->
-  <link href="../assets/css/header.css" rel="stylesheet">
-  <!-- cc_desiase CSS File -->
-  <link href="../assets/css/cc_desiase.css" rel="stylesheet">
-  <!-- Footer CSS File -->
-  <link href="../assets/css/footer.css" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CancerAI — прогноз по цитологии</title>
+<meta content="Загрузите цитологическое изображение (ПАП-тест), выберите модель и получите вероятности для классов HSIL, LSIL, NILM и SCC." name="description"/>
+<meta content="CancerAI, цитология, ПАП-тест, рак шейки матки, прогноз, HSIL, LSIL, NILM, SCC, искусственный интеллект" name="keywords"/>
+<!-- Favicons -->
+<link href="../assets/favicons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="../assets/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="../assets/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<link href="../assets/favicons/site.webmanifest" rel="manifest"/>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&amp;family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&amp;display=swap" rel="stylesheet"/>
+<!-- Vendor CSS Files -->
+<link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet"/>
+<link href="../assets/vendor/aos/aos.css" rel="stylesheet"/>
+<link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet"/>
+<link href="../assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+<link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet"/>
+<!-- header CSS File -->
+<link href="../assets/css/header.css" rel="stylesheet"/>
+<!-- cc_desiase CSS File -->
+<link href="../assets/css/cc_desiase.css" rel="stylesheet"/>
+<!-- Footer CSS File -->
+<link href="../assets/css/footer.css" rel="stylesheet"/>
 </head>
-
 <body class="service-details-page">
-
-  <header id="header" class="header d-flex align-items-center fixed-top">
-    <div class="container position-relative d-flex align-items-center justify-content-between">
-
-      <a href="index.html" class="logo d-flex align-items-center me-auto me-xl-0">
-        <h1 class="sitename">Cancer<span>Ai</span>Uz</h1>
-      </a>
-
-      <nav id="navmenu" class="navmenu">
-        <ul>
-          <li><a href="index.html">Bosh sahifa</a></li>
-          <li><a href="about.html">Loyiha haqida</a></li>
-          <li><a href="types-of-desiase.html">Saraton turlari</a></li>
-          <li><a href="contact.html">Aloqa</a></li>
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
-
-    </div>
-  </header>
-
-  <main class="main">
-
-    <!-- Page Title -->
-    <div class="page-title">
-      <div class="heading">
-        <div class="container">
-          <div class="row d-flex justify-content-center text-center">
-            <div class="col-lg-8">
-              <h1 class="heading-title">Sitologiya bo‘yicha saraton prognozi</h1>
-              <p class="mb-0">
-                Tasvirni yuklang, modelni tanlang va HSIL, LSIL, NILM, SCC sinflari bo‘yicha ehtimollik natijasini oling.
-                Eslatma: bu yakuniy tashxis emas — shifokor ko‘rigi majburiy.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <nav class="breadcrumbs">
-        <div class="container">
-          <ol>
-            <li><a href="index.html">Bosh sahifa</a></li>
-            <li class="current">Prognoz</li>
-          </ol>
-        </div>
-      </nav>
-    </div>
-    <!-- End Page Title -->
-
-    <!-- Prediction Section -->
-    <section id="cc-predict" class="section">
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <!-- CENTERED WRAPPER -->
-        <div class="row justify-content-center gy-4">
-          <div class="col-12 col-lg-10 col-xl-10">
-
-            <!-- INPUT CARD -->
-            <div class="card shadow-sm mb-4">
-              <div class="card-body">
-
-                <h2 class="mb-5 text-center">Kirish ma’lumotlari</h2>
-
-                <!-- Status -->
-                <div id="status" class="alert d-none mb-3" role="alert"></div>
-
-                <!-- Model select -->
-                <div class="mb-3">
-                  <label class="form-label">Algoritm (model)ni tanlang</label>
-                  <select id="modelSelect" class="form-select">
-                    <option value="">Yuklanmoqda...</option>
-                  </select>
-                </div>
-
-                <!-- Upload -->
-                <div class="mb-3">
-                  <label class="form-label">Tasvirni yuklang</label>
-
-                  <div id="dropzone" class="border rounded-3 p-3 text-center bg-light">
-                    <div>
-                      <i class="bi bi-cloud-arrow-up"></i>
-                    </div>
-                    <div class="fw-semibold">Faylni shu yerga sudrab tashlang</div>
-                    <div class="text-muted small mb-3">yoki qo‘lda tanlang</div>
-
-                    <input id="fileInput" type="file" accept="image/*" class="d-none" />
-
-                    <div class="d-flex gap-2 justify-content-center">
-                      <button id="browseBtn" type="button" class="btn btn-primary">
-                        Faylni tanlash
-                      </button>
-                      <button id="clearFileBtn" type="button" class="btn btn-outline-secondary">
-                        Tozalash
-                      </button>
-                    </div>
-                  </div>
-
-                  <div id="fileRow" class="d-none mt-3">
-                    <div class="d-flex align-items-center justify-content-between border rounded-3 p-2">
-                      <div class="text-truncate">
-                        <i class="bi bi-image me-2"></i><span id="fileName"></span>
-                      </div>
-                      <button id="clearFileBtn2" type="button" class="btn btn-sm btn-outline-secondary"
-                        onclick="document.getElementById('clearFileBtn').click()">
-                        <i class="bi bi-x-lg"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- Actions -->
-                <div class="d-grid gap-2 mb-5">
-                  <button id="runBtn" type="button" class="btn btn-success mb-3" disabled>
-                    <i class="bi bi-play-fill me-1"></i> Prognoz
-                  </button>
-
-                  <button id="clearCacheBtn" type="button" class="btn btn-outline-danger mb-3">
-                    <i class="bi bi-trash me-1"></i> Model keshini tozalash
-                  </button>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- RESULTS CARD -->
-            <div class="card shadow-sm">
-              <div class="card-body">
-
-                <h2 class="mb-3 text-center">Natija</h2>
-
-                <div id="results" class="d-none">
-                  <div class="row g-4">
-
-                    <!-- 1) TABLES -->
-                    <div class="col-12">
-                      <div class="mb-3">
-                        <h4 class="mb-2">Metrikalar</h4>
-                        <div class="table-responsive">
-                          <table class="table table-bordered align-middle mb-0">
-                            <thead class="table-light">
-                              <tr>
-                                <th style="width: 60px" class="text-center">#</th>
-                                <th class="text-center">Parametr</th>
-                                <th class="text-center">Qiymat</th>
-                              </tr>
-                            </thead>
-                            <tbody id="metricsTbody"></tbody>
-                          </table>
-                        </div>
-                      </div>
-
-                      <div class="mb-3">
-                        <h4 class="mb-2">Sinflar bo‘yicha ehtimollik</h4>
-                        <div class="table-responsive">
-                          <table class="table table-bordered align-middle mb-0">
-                            <thead class="table-light">
-                              <tr>
-                                <th style="width: 60px" class="text-center">#</th>
-                                <th class="text-center">Sinf</th>
-                                <th class="text-center">%</th>
-                              </tr>
-                            </thead>
-                            <tbody id="probsTbody"></tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- 2) INTERPRETATION -->
-                    <div class="col-12">
-                      <h4 class="mb-2">Natija interpretatsiyasi</h4>
-                      <p id="interpretation" class="mb-0"></p>
-                    </div>
-
-                    <!-- 3) IMAGE -->
-                    <div class="col-12">
-                      <div class="border rounded-3 p-2 bg-white">
-                        <h4 class="mb-2">Yuklangan tasvir</h4>
-                        <img id="resultImg" class="img-fluid rounded-2" alt="Yuklangan tasvir">
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                <div id="resultsPlaceholder" class="text-muted">
-                  Hozircha natija yo‘q. Tasvirni yuklang va «Prognoz» tugmasini bosing.
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-        <!-- /CENTERED WRAPPER -->
-
-      </div>
-    </section>
-    <!-- /Prediction Section -->
-
-  </main>
-
-  <footer id="footer" class="footer position-relative">
-
-    <div class="container footer-top">
-      <div class="row gy-4">
-        <div class="col-lg-4 col-md-6 footer-about">
-          <a href="index.html" class="logo d-flex align-items-center">
-            <span class="sitename">CancerAiUz</span>
-          </a>
-          <div class="footer-contact pt-3">
-            <p>Amir Temur shoh ko‘chasi, 108-uy</p>
-            <p>Toshkent, 100084</p>
-            <p class="mt-3"><strong>Aloqa raqami:</strong> <span>+99897 729-89-97</span></p>
-            <p><strong>Elektron pochta:</strong> <span>oliver-smith-97@mail.ru</span></p>
-          </div>
-          <div class="social-links d-flex mt-4">
-            <a href=""><i class="bi bi-twitter-x"></i></a>
-            <a href=""><i class="bi bi-facebook"></i></a>
-            <a href=""><i class="bi bi-instagram"></i></a>
-            <a href=""><i class="bi bi-linkedin"></i></a>
-          </div>
-        </div>
-
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Navigatsiya</h4>
-          <ul>
-            <li><a href="index.html">Bosh sahifa</a></li>
-            <li><a href="about.html">Loyiha haqida</a></li>
-            <li><a href="types-of-desiase.html">Saraton turlari</a></li>
-            <li><a href="contact.html">Aloqa</a></li>
-          </ul>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="container copyright text-center mt-4">
-      <p>© 2026 <span>Mualliflik huquqlari</span> <strong>CancerAiUz.</strong>&nbsp;<span>Barcha huquqlar himoyalangan.</span></p>
-      <div class="credits">
-        Muallif <a href="https://t.me/saidislombek15/" target="_blank">Abdullakhujaev S.N.</a>
-      </div>
-    </div>
-
-  </footer>
-
-  <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
-      class="bi bi-arrow-up-short"></i></a>
-
-  <!-- Preloader -->
-  <div id="preloader"></div>
-
-  <!-- Vendor JS Files -->
-  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="../assets/vendor/php-email-form/validate.js"></script>
-  <script src="../assets/vendor/aos/aos.js"></script>
-  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
-  <script src="../assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
-  <script src="../assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
-
-  <!-- Main JS File -->
-  <script src="../assets/js/main.js"></script>
-
-  <!-- Predict JS File -->
-  <script src="../assets/js/cc_desiase.js"></script>
-
+<header class="header d-flex align-items-center fixed-top" id="header">
+<div class="container position-relative d-flex align-items-center justify-content-between">
+<a class="logo d-flex align-items-center me-auto me-xl-0" href="index.html">
+<h1 class="sitename">Cancer<span>Ai</span>Uz</h1>
+</a>
+<nav class="navmenu" id="navmenu">
+<ul>
+<li><a href="index.html">Главная</a></li>
+<li><a href="about.html">О проекте</a></li>
+<li><a href="types-of-desiase.html">Виды рака</a></li>
+<li><a href="contact.html">Контакты</a></li>
+</ul>
+<i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+</nav>
+</div>
+</header>
+<main class="main">
+<!-- Page Title -->
+<div class="page-title">
+<div class="heading">
+<div class="container">
+<div class="row d-flex justify-content-center text-center">
+<div class="col-lg-8">
+<h1 class="heading-title">Прогноз по цитологическому изображению</h1>
+<p class="mb-0">Загрузите изображение, выберите модель и получите вероятности для классов HSIL, LSIL, NILM и SCC. Результат не является окончательным диагнозом и не заменяет консультацию врача.</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="breadcrumbs">
+<div class="container">
+<ol>
+<li><a href="index.html">Главная</a></li>
+<li class="current">Выполнить прогноз</li>
+</ol>
+</div>
+</nav>
+</div>
+<!-- End Page Title -->
+<!-- Prediction Section -->
+<section class="section" id="cc-predict">
+<div class="container" data-aos="fade-up" data-aos-delay="100">
+<!-- CENTERED WRAPPER -->
+<div class="row justify-content-center gy-4">
+<div class="col-12 col-lg-10 col-xl-10">
+<!-- INPUT CARD -->
+<div class="card shadow-sm mb-4">
+<div class="card-body">
+<h2 class="mb-5 text-center">Исходные данные</h2>
+<!-- Status -->
+<div class="alert d-none mb-3" id="status" role="alert"></div>
+<!-- Model select -->
+<div class="mb-3">
+<label class="form-label">Выберите алгоритм (модель)</label>
+<select class="form-select" id="modelSelect">
+<option value="">Загрузка...</option>
+</select>
+</div>
+<!-- Upload -->
+<div class="mb-3">
+<label class="form-label">Загрузите изображение</label>
+<div class="border rounded-3 p-3 text-center bg-light" id="dropzone">
+<div>
+<i class="bi bi-cloud-arrow-up"></i>
+</div>
+<div class="fw-semibold">Перетащите файл сюда</div>
+<div class="text-muted small mb-3">или выберите его вручную</div>
+<input accept="image/*" class="d-none" id="fileInput" type="file"/>
+<div class="d-flex gap-2 justify-content-center">
+<button class="btn btn-primary" id="browseBtn" type="button">Выбрать файл</button>
+<button class="btn btn-outline-secondary" id="clearFileBtn" type="button">Очистить</button>
+</div>
+</div>
+<div class="d-none mt-3" id="fileRow">
+<div class="d-flex align-items-center justify-content-between border rounded-3 p-2">
+<div class="text-truncate">
+<i class="bi bi-image me-2"></i><span id="fileName"></span>
+</div>
+<button class="btn btn-sm btn-outline-secondary" id="clearFileBtn2" onclick="document.getElementById('clearFileBtn').click()" type="button">
+<i class="bi bi-x-lg"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="d-grid gap-2 mb-5">
+<button class="btn btn-success mb-3" disabled="" id="runBtn" type="button">
+<i class="bi bi-play-fill me-1"></i>Выполнить прогноз</button>
+<button class="btn btn-outline-danger mb-3" id="clearCacheBtn" type="button">
+<i class="bi bi-trash me-1"></i>Очистить кэш модели</button>
+</div>
+</div>
+</div>
+<!-- RESULTS CARD -->
+<div class="card shadow-sm">
+<div class="card-body">
+<h2 class="mb-3 text-center">Результат</h2>
+<div class="d-none" id="results">
+<div class="row g-4">
+<!-- 1) TABLES -->
+<div class="col-12">
+<div class="mb-3">
+<h4 class="mb-2">Метрики</h4>
+<div class="table-responsive">
+<table class="table table-bordered align-middle mb-0">
+<thead class="table-light">
+<tr>
+<th class="text-center" style="width: 60px">#</th>
+<th class="text-center">Параметр</th>
+<th class="text-center">Значение</th>
+</tr>
+</thead>
+<tbody id="metricsTbody"></tbody>
+</table>
+</div>
+</div>
+<div class="mb-3">
+<h4 class="mb-2">Вероятности по классам</h4>
+<div class="table-responsive">
+<table class="table table-bordered align-middle mb-0">
+<thead class="table-light">
+<tr>
+<th class="text-center" style="width: 60px">#</th>
+<th class="text-center">Класс</th>
+<th class="text-center">%</th>
+</tr>
+</thead>
+<tbody id="probsTbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- 2) INTERPRETATION -->
+<div class="col-12">
+<h4 class="mb-2">Интерпретация результата</h4>
+<p class="mb-0" id="interpretation"></p>
+</div>
+<!-- 3) IMAGE -->
+<div class="col-12">
+<div class="border rounded-3 p-2 bg-white">
+<h4 class="mb-2">Загруженное изображение</h4>
+<img alt="Загруженное изображение" class="img-fluid rounded-2" id="resultImg"/>
+</div>
+</div>
+</div>
+</div>
+<div class="text-muted" id="resultsPlaceholder">Результатов пока нет. Загрузите изображение и нажмите кнопку «Выполнить прогноз».</div>
+</div>
+</div>
+</div>
+</div>
+<!-- /CENTERED WRAPPER -->
+</div>
+</section>
+<!-- /Prediction Section -->
+</main>
+<footer class="footer position-relative" id="footer">
+<div class="container footer-top">
+<div class="row gy-4">
+<div class="col-lg-4 col-md-6 footer-about">
+<a class="logo d-flex align-items-center" href="index.html">
+<span class="sitename">CancerAiUz</span>
+</a>
+<div class="footer-contact pt-3">
+<p>проспект Амира Темура, дом 108</p>
+<p>Ташкент, 100084</p>
+<p class="mt-3"><strong>Телефон:</strong> <span>+99897 729-89-97</span></p>
+<p><strong>Электронная почта:</strong> <span>oliver-smith-97@mail.ru</span></p>
+</div>
+<div class="social-links d-flex mt-4">
+<a href=""><i class="bi bi-twitter-x"></i></a>
+<a href=""><i class="bi bi-facebook"></i></a>
+<a href=""><i class="bi bi-instagram"></i></a>
+<a href=""><i class="bi bi-linkedin"></i></a>
+</div>
+</div>
+<div class="col-lg-2 col-md-3 footer-links">
+<h4>Навигация</h4>
+<ul>
+<li><a href="index.html">Главная</a></li>
+<li><a href="about.html">О проекте</a></li>
+<li><a href="types-of-desiase.html">Виды рака</a></li>
+<li><a href="contact.html">Контакты</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="container copyright text-center mt-4">
+<p>© 2026 <span>Авторские права</span> <strong>CancerAiUz.</strong> <span>Все права защищены.</span></p>
+<div class="credits">Автор: <a href="https://t.me/saidislombek15/" target="_blank">Abdullakhujaev S.N.</a>
+</div>
+</div>
+</footer>
+<!-- Scroll Top -->
+<a class="scroll-top d-flex align-items-center justify-content-center" href="#" id="scroll-top"><i class="bi bi-arrow-up-short"></i></a>
+<!-- Preloader -->
+<div id="preloader"></div>
+<!-- Vendor JS Files -->
+<script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/vendor/php-email-form/validate.js"></script>
+<script src="../assets/vendor/aos/aos.js"></script>
+<script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="../assets/vendor/purecounter/purecounter_vanilla.js"></script>
+<script src="../assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+<script src="../assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+<script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+<!-- Main JS File -->
+<script src="../assets/js/main.js"></script>
+<!-- Predict JS File -->
+<script src="../assets/js/cc_desiase.js"></script>
 </body>
-
 </html>

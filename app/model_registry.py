@@ -40,17 +40,17 @@ class LoadedModel:
 DEFAULT_MODELS: List[ModelSpec] = [
     ModelSpec(
         model_id="cc_mswt_tested",
-        display_name="Multi-scale Window Transformer MSWT",
+        display_name="Многомасштабный оконный трансформер (MSWT)",
         filename="cc_mswt_tested.h5",
     ),
     ModelSpec(
         model_id="cc_env2_s_tested",
-        display_name="EfficientNetV2-S (EfficientNetV2 Small)",
+        display_name="EfficientNetV2-S",
         filename="cc_env2_s_tested.h5",
     ),
     ModelSpec(
         model_id="cc_rf_tested",
-        display_name="Random Forest",
+        display_name="Случайный лес (Random Forest)",
         filename="cc_rf_tested.h5",
     ),
     ModelSpec(
@@ -60,7 +60,7 @@ DEFAULT_MODELS: List[ModelSpec] = [
     ),
     ModelSpec(
         model_id="cc_vit_sts_tested",
-        display_name="ViT Vision Transformer (Swin Transformer Small)",
+        display_name="Визуальный трансформер ViT (Swin Transformer Small)",
         filename="cc_vit_sts_tested.h5",
     ),
 ]
@@ -98,7 +98,7 @@ class ModelRegistry:
     def resolve_path(self, model_id: str) -> Path:
         spec = next((m for m in self._specs if m.model_id == model_id), None)
         if spec is None:
-            raise KeyError(f"Unknown model_id: {model_id}")
+            raise KeyError(f"Неизвестный идентификатор модели: {model_id}")
         return (self._model_dir / spec.filename).resolve()
 
     def clear_cache(self) -> None:
@@ -115,8 +115,8 @@ class ModelRegistry:
                 return "timm_h5"
 
         raise ValueError(
-            f"Unrecognized .h5 format: {path}. "
-            f"Expected Keras H5 (with model_config) or timm_h5 (info + model_state_dict)."
+            f"Неизвестный формат .h5: {path}. "
+            f"Ожидается Keras H5 (с model_config) или timm_h5 (info + model_state_dict)."
         )
 
     def _load_timm_h5(self, path: Path) -> LoadedModel:
@@ -126,7 +126,7 @@ class ModelRegistry:
             classes_csv = _to_str(info.attrs["classes"])
             labels = [c.strip() for c in classes_csv.split(",") if c.strip()]
             if not labels:
-                raise ValueError("No classes found in info.attrs['classes']")
+                raise ValueError("В атрибуте info.attrs['classes'] не найдены классы")
 
             num_classes = len(labels)
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -185,7 +185,7 @@ class ModelRegistry:
 
             path = self.resolve_path(model_id)
             if not path.exists():
-                raise FileNotFoundError(f"Model file is missing: {path}")
+                raise FileNotFoundError(f"Файл модели не найден: {path}")
 
             kind = self._detect_kind(path)
             if kind == "keras":

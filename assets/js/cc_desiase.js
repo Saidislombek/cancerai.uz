@@ -2,29 +2,27 @@ const el = (id) => document.getElementById(id);
 
 const CLASS_DESCRIPTIONS = {
   NILM:
-    "NILM (Negative for Intraepithelial Lesion or Malignancy) — цитологический результат ПАП-теста, " +
-    "означающий отсутствие признаков внутриэпителиального поражения и злокачественности: " +
-    "не выявлены раковые клетки или другие атипичные клетки эпителия шейки матки. " +
-    "Возможны сопутствующие реактивные/воспалительные изменения без признаков предрака.",
+    "NILM (Negative for Intraepithelial Lesion or Malignancy) — результат ПАП-теста, " +
+    "при котором не обнаружены признаки интраэпителиального поражения или злокачественности. " +
+    "При этом могут присутствовать реактивные изменения, связанные с воспалением или инфекцией, " +
+    "без признаков предракового поражения.",
 
   LSIL:
-    "LSIL (Low-grade Squamous Intraepithelial Lesion) — низкодифференцированное плоскоклеточное " +
-    "внутриэпителиальное поражение: лёгкие (умеренно выраженные) цитологические атипии плоского эпителия, " +
-    "часто ассоциированные с ВПЧ-инфекцией; обычно соответствует CIN 1 (лёгкая дисплазия). " +
-    "Многие случаи регрессируют самостоятельно, но требуют наблюдения по клиническим рекомендациям.",
+    "LSIL (Low-grade Squamous Intraepithelial Lesion) — плоскоклеточное интраэпителиальное поражение " +
+    "низкой степени. Клетки выглядят слегка атипичными; такие изменения часто связаны с ВПЧ " +
+    "и нередко соответствуют лёгкой дисплазии (CIN 1). Многие случаи проходят самостоятельно, " +
+    "однако дальнейшее наблюдение определяет врач.",
 
   HSIL:
-    "HSIL (High-grade Squamous Intraepithelial Lesion) — высокодифференцированное плоскоклеточное " +
-    "внутриэпителиальное поражение: выраженные цитологические атипии плоского эпителия, " +
-    "соответствующие более высокому риску значимого предрака; обычно соответствует CIN 2–CIN 3 " +
-    "(умеренная/тяжёлая дисплазия, включая carcinoma in situ). " +
-    "Результат требует прицельной верификации (как правило, кольпоскопия/биопсия) по протоколам.",
+    "HSIL (High-grade Squamous Intraepithelial Lesion) — плоскоклеточное интраэпителиальное поражение " +
+    "высокой степени. Оно связано с более выраженными клеточными изменениями и повышенным риском " +
+    "предракового процесса, часто соответствующего CIN 2–CIN 3. Требуется своевременная консультация " +
+    "специалиста и уточняющее обследование по клиническим рекомендациям.",
 
   SCC:
-    "SCC (Squamous Cell Carcinoma) — плоскоклеточный рак: злокачественная опухоль, " +
-    "происходящая из плоских клеток эпителия шейки матки. " +
-    "В цитологическом заключении категория 'SCC' означает признаки, соответствующие раку, " +
-    "и требует срочного уточнения диагноза в специализированном порядке.",
+    "SCC (Squamous Cell Carcinoma) — плоскоклеточный рак шейки матки. Такой результат указывает " +
+    "на признаки злокачественного процесса и требует срочного обращения к профильному врачу " +
+    "для подтверждения диагноза и определения дальнейшей тактики.",
 };
 
 const FIXED_CLASS_ORDER = ["HSIL", "LSIL", "NILM", "SCC"];
@@ -174,7 +172,7 @@ async function loadModels() {
 
   try {
     const r = await fetch("/api/models");
-    if (!r.ok) throw new Error("bad response");
+    if (!r.ok) throw new Error("Некорректный ответ сервера");
 
     const data = await r.json();
     const models = data.models || [];
@@ -183,7 +181,7 @@ async function loadModels() {
 
     if (models.length === 0) {
       sel.innerHTML = `<option value="">Список моделей пуст</option>`;
-      setStatus("error", "Backend вернул пустой список моделей (/api/models).");
+      setStatus("error", "Сервер вернул пустой список моделей (/api/models).");
       return;
     }
 
@@ -200,7 +198,7 @@ async function loadModels() {
 
   } catch (e) {
     sel.innerHTML = `<option value="">Не удалось загрузить список моделей</option>`;
-    setStatus("error", "Не удалось получить список моделей (/api/models). Проверь backend.");
+    setStatus("error", "Не удалось получить список моделей (/api/models). Проверьте работу сервера.");
   }
 }
 
@@ -253,7 +251,7 @@ function renderResults(payload) {
       const p = Number(probs[label] || 0) * 100;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="text-center">${idx}</td>
+        <td class="text-center">${idx + 1}</td>
         <td class="text-center">${label}</td>
         <td class="text-center">${p.toFixed(2)}</td>
       `;
@@ -302,14 +300,14 @@ async function runInference() {
     const data = await r.json();
 
     if (!r.ok) {
-      setStatus("error", data.error || "Ошибка при выполнении прогноза.");
+      setStatus("error", data.error || data.detail || "Ошибка при выполнении прогноза.");
       return;
     }
 
     setStatus("ok", "Прогноз выполнен успешно.");
     renderResults(data);
   } catch (e) {
-    setStatus("error", "Сетевая ошибка. Проверьте, что backend запущен и доступен.");
+    setStatus("error", "Сетевая ошибка. Проверьте, что сервер запущен и доступен.");
   } finally {
     if (runBtn) runBtn.disabled = false;
   }
@@ -332,7 +330,7 @@ async function clearCache() {
     const data = await r.json();
 
     if (!r.ok) {
-      setStatus("error", data.error || "Не удалось очистить кэш модели.");
+      setStatus("error", data.error || data.detail || "Не удалось очистить кэш модели.");
       return;
     }
 
